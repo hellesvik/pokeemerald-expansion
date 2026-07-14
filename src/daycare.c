@@ -18,6 +18,7 @@
 #include "task.h"
 #include "window.h"
 #include "party_menu.h"
+#include "fork_run.h"
 #include "list_menu.h"
 #include "overworld.h"
 #include "item.h"
@@ -355,10 +356,12 @@ static u16 TakeSelectedPokemonFromDaycare(struct DaycareMon *daycareMon)
 
     GetBoxMonNickname(&daycareMon->mon, gStringVar1);
     BoxMonToMon(&daycareMon->mon, &pokemon);
+    if (ForkIsSoftNuzlockeMon(&pokemon))
+        daycareMon->steps = 0;
 
     TryFormChange(&pokemon, FORM_CHANGE_WITHDRAW, B_TRAINER_PLAYER);
 
-    if (GetMonData(&pokemon, MON_DATA_LEVEL) < GetCurrentLevelCap())
+    if (!ForkIsSoftNuzlockeMon(&pokemon) && GetMonData(&pokemon, MON_DATA_LEVEL) < GetCurrentLevelCap())
     {
         experience = GetMonData(&pokemon, MON_DATA_EXP) + daycareMon->steps;
         u32 maxExp = GetExpAtLevelCap(&pokemon);

@@ -108,6 +108,13 @@ enum
     HEALTHBOX_SAFARI_BALLS_TEXT
 };
 
+enum BattleCaughtIndicatorType
+{
+    BATTLE_CAUGHT_INDICATOR_NONE,
+    BATTLE_CAUGHT_INDICATOR_CAUGHT,
+    BATTLE_CAUGHT_INDICATOR_FIRST_ENCOUNTER,
+};
+
 enum BattleCoordTypes GetBattlerCoordsIndex(enum BattlerId battler);
 u8 CreateBattlerHealthboxSprites(enum BattlerId battler);
 u8 CreateSafariPlayerHealthboxSprites(void);
@@ -139,6 +146,7 @@ void CategoryIcons_LoadSpritesGfx(void);
 void TryToAddMoveInfoWindow(void);
 void TryToHideMoveInfoWindow(void);
 void TryAddPokeballIconToHealthbox(u8 healthboxSpriteId, bool8 noStatus);
+enum BattleCaughtIndicatorType BattleInterface_GetCaughtIndicatorType(bool32 showFirstEncounterIndicator, bool32 speciesCaught, bool8 noStatus);
 void UpdateNickInHealthbox(u8 healthboxSpriteId, struct Pokemon *mon);
 
 #endif // GUARD_BATTLE_INTERFACE_H

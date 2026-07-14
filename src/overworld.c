@@ -18,6 +18,7 @@
 #include "field_effect.h"
 #include "field_effect_helpers.h"
 #include "field_message_box.h"
+#include "fork_run.h"
 #include "field_player_avatar.h"
 #include "field_screen_effect.h"
 #include "field_special_scene.h"
@@ -393,6 +394,7 @@ static void (*const sMovementStatusHandler[])(struct LinkPlayerObjectEvent *, st
 void DoWhiteOut(void)
 {
     RunScriptImmediately(EventScript_WhiteOut);
+    ForkApplySoftNuzlockeWhiteOutPenalty();
     HealPlayerParty();
     Overworld_ResetStateAfterWhiteOut();
     SetWarpDestinationToLastHealLocation();

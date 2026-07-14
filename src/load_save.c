@@ -18,6 +18,7 @@
 #include "decoration_inventory.h"
 #include "agb_flash.h"
 #include "event_data.h"
+#include "fork_run.h"
 #include "constants/event_objects.h"
 
 static void ApplyNewEncryptionKeyToAllEncryptedData(u32 encryptionKey);
@@ -251,6 +252,9 @@ void CopyPartyAndObjectsFromSave(void)
 {
     LoadPlayerParty();
     LoadObjectEvents();
+    ForkEnsureKeyItemsPresent();
+    ForkInvalidateOwnedFamilyCache();
+    ForkScrubPlayerOwnedMons();
 }
 
 void LoadPlayerBag(void)

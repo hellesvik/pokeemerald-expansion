@@ -22,6 +22,7 @@
 #include "fishing.h"
 #include "fldeff.h"
 #include "follower_npc.h"
+#include "fork_run.h"
 #include "item.h"
 #include "item_menu.h"
 #include "item_use.h"
@@ -93,6 +94,7 @@ static const u8 sText_BootedUpHM[] = _("Booted up an HM.");
 static const u8 sText_TMHMContainedVar1[] = _("It contained\n{STR_VAR_1}.\pTeach {STR_VAR_1}\nto a POKéMON?");
 static const u8 sText_UsedVar2WildLured[] = _("{PLAYER} used the\n{STR_VAR_2}.\pWild POKéMON will be lured.{PAUSE_UNTIL_PRESS}");
 static const u8 sText_UsedVar2WildRepelled[] = _("{PLAYER} used the\n{STR_VAR_2}.\pWild POKéMON will be repelled.{PAUSE_UNTIL_PRESS}");
+static const u8 sText_Var2TurnedOff[] = _("{STR_VAR_2} was turned off.{PAUSE_UNTIL_PRESS}");
 static const u8 sText_PlayedPokeFluteCatchy[] = _("Played the POKé FLUTE.\pNow, that's a catchy tune!{PAUSE_UNTIL_PRESS}");
 static const u8 sText_PlayedPokeFlute[] = _("Played the POKé FLUTE.");
 static const u8 sText_PokeFluteAwakenedMon[] = _("The POKé FLUTE awakened sleeping\nPOKéMON.{PAUSE_UNTIL_PRESS}");
@@ -974,9 +976,21 @@ static void RemoveUsedItem(void)
     }
 }
 
+bool32 ToggleInfiniteRepelState(void)
+{
+    if (VarGet(VAR_REPEL_STEP_COUNT) == 0x7FFF)
+    {
+        VarSet(VAR_REPEL_STEP_COUNT, 0);
+        return FALSE;
+    }
+
+    VarSet(VAR_REPEL_STEP_COUNT, 0x7FFF);
+    return TRUE;
+}
+
 void ItemUseOutOfBattle_Repel(u8 taskId)
 {
-    if (REPEL_STEP_COUNT == 0)
+    if (gSpecialVar_ItemId == ITEM_INFINITE_REPEL || REPEL_STEP_COUNT == 0)
         gTasks[taskId].func = Task_StartUseRepel;
     else if (CurrentBattlePyramidLocation() == PYRAMID_LOCATION_NONE)
         DisplayItemMessage(taskId, FONT_NORMAL, gText_RepelEffectsLingered, CloseItemMessage);
@@ -998,13 +1012,34 @@ static void Task_StartUseRepel(u8 taskId)
 
 static void Task_UseRepel(u8 taskId)
 {
+    bool32 isActive = TRUE;
+
     if (!IsSEPlaying())
     {
-        VarSet(VAR_REPEL_STEP_COUNT, GetItemHoldEffectParam(gSpecialVar_ItemId));
-    #if VAR_LAST_REPEL_LURE_USED != 0
-        VarSet(VAR_LAST_REPEL_LURE_USED, gSpecialVar_ItemId);
-    #endif
-        RemoveUsedItem();
+        if (gSpecialVar_ItemId == ITEM_INFINITE_REPEL)
+        {
+            CopyItemName(gSpecialVar_ItemId, gStringVar2);
+            isActive = ToggleInfiniteRepelState();
+            if (isActive)
+            {
+            #if VAR_LAST_REPEL_LURE_USED != 0
+                VarSet(VAR_LAST_REPEL_LURE_USED, gSpecialVar_ItemId);
+            #endif
+                StringExpandPlaceholders(gStringVar4, gText_PlayerUsedVar2);
+            }
+            else
+            {
+                StringExpandPlaceholders(gStringVar4, sText_Var2TurnedOff);
+            }
+        }
+        else
+        {
+            VarSet(VAR_REPEL_STEP_COUNT, GetItemHoldEffectParam(gSpecialVar_ItemId));
+        #if VAR_LAST_REPEL_LURE_USED != 0
+            VarSet(VAR_LAST_REPEL_LURE_USED, gSpecialVar_ItemId);
+        #endif
+            RemoveUsedItem();
+        }
         if (CurrentBattlePyramidLocation() == PYRAMID_LOCATION_NONE)
             DisplayItemMessage(taskId, FONT_NORMAL, gStringVar4, CloseItemMessage);
         else
@@ -1152,7 +1187,11 @@ static u32 GetBallThrowableState(void)
         return BALL_THROW_UNABLE_NO_ROOM;
     else if (GetConfig(B_SEMI_INVULNERABLE_CATCH) >= GEN_4 &&  IsSemiInvulnerable(GetCatchingBattler(), CHECK_ALL))
         return BALL_THROW_UNABLE_SEMI_INVULNERABLE;
+    else if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+        return BALL_THROW_UNABLE_DISABLED_FLAG;
     else if (FlagGet(WE_FLAG_NO_CATCHING) || !IsAllowedToUseBag())
+        return BALL_THROW_UNABLE_DISABLED_FLAG;
+    else if (!ForkCanCatchCurrentEncounter())
         return BALL_THROW_UNABLE_DISABLED_FLAG;
 
     return BALL_THROW_ABLE;
@@ -1166,8 +1205,18 @@ bool32 CanThrowBall(void)
 static const u8 sText_CantThrowPokeBall_TwoMons[] = _("Cannot throw a ball!\nThere are two Pokémon out there!\p");
 static const u8 sText_CantThrowPokeBall_SemiInvulnerable[] = _("Cannot throw a ball!\nThere's no Pokémon in sight!\p");
 static const u8 sText_CantThrowPokeBall_Disabled[] = _("POKé BALLS cannot be used\nright now!\p");
+static const u8 sText_ItemsCantBeUsedInTrainerBattle[] = _("Items can't be used\nin Trainer Battles!\p");
 void ItemUseInBattle_PokeBall(u8 taskId)
 {
+    if (!ForkCanCatchCurrentEncounter())
+    {
+        if (CurrentBattlePyramidLocation() == PYRAMID_LOCATION_NONE)
+            DisplayItemMessage(taskId, FONT_NORMAL, sText_CantThrowPokeBall_Disabled, CloseItemMessage);
+        else
+            DisplayItemMessageInBattlePyramid(taskId, sText_CantThrowPokeBall_Disabled, Task_CloseBattlePyramidBagMessage);
+        return;
+    }
+
     switch (GetBallThrowableState())
     {
     case BALL_THROW_ABLE:
@@ -1276,7 +1325,14 @@ bool32 CannotUseItemsInBattle(enum Item itemId, struct Pokemon *mon)
             return TRUE;
     }
 
+    if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+    {
+        failStr = sText_ItemsCantBeUsedInTrainerBattle;
+        cannotUse = TRUE;
+    }
+
     // battleUsage checks
+    if (!cannotUse)
     switch (battleUsage)
     {
     case EFFECT_ITEM_INCREASE_STAT:

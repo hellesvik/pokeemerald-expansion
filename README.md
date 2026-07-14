@@ -6,6 +6,18 @@
 
 **`pokeemerald-expansion`** is a GBA ROM hack base that equips developers with a comprehensive toolkit for creating Pokémon ROM hacks. **`pokeemerald-expansion`** is built on top of [pret's `pokeemerald`](https://github.com/pret/pokeemerald) decompilation project. **It is not a playable Pokémon game on its own.**
 
+## Fork Changes
+
+This fork enforces a one-normal-encounter-per-named-area rule based on region map sections, with family-wide dupes clause checks and shiny exceptions.
+This fork blocks catching uncapturable wild encounters before a ball or Safari Ball is consumed, and it also blocks egg hatching in areas whose encounter has already been spent.
+This fork applies a soft nuzlocke whiteout penalty by permanently marking one random party Pokemon, dropping it to level 1, and preventing it from leveling again.
+This fork uses a hard story-battle level cap that advances through required gyms, rival fights, villain boss fights, the Elite Four, Champion Wallace, and then disappears after Steven.
+This fork bans battle item use in trainer battles, including healing items, X-items, revives, escape items, and balls.
+This fork adds reusable Infinite Rare Candy and Infinite Repel key items, and both are granted on new game and on continue if missing.
+This fork forces player-owned Pokemon to stay at 0 EVs, including newly obtained Pokemon and old saves loaded into the fork.
+This fork exposes raw IV values on the summary screen for easier stat checking.
+More detailed fork-specific behavior is documented in [FORK.md](FORK.md). The current remake notes source lives in [`ai-remake-summary.txt`](ai-remake-summary.txt).
+
 # [Features](FEATURES.md)
 
 **`pokeemerald-expansion`** offers hundreds of features from various [core series Pokémon games](https://bulbapedia.bulbagarden.net/wiki/Core_series), along with popular quality-of-life enhancements designed to streamline development and improve the player experience. A full list of those features can be found in [`FEATURES.md`](FEATURES.md).

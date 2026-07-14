@@ -28,6 +28,7 @@
 #include "item.h"
 #include "item_icon.h"
 #include "item_use.h"
+#include "fork_run.h"
 #include "test_runner.h"
 #include "constants/battle_anim.h"
 #include "constants/rgb.h"
@@ -203,6 +204,18 @@ static void Task_FreeAbilityPopUpGfx(u8);
 static void SpriteCB_LastUsedBall(struct Sprite *);
 static void SpriteCB_LastUsedBallWin(struct Sprite *);
 static void SpriteCB_MoveInfoWin(struct Sprite *sprite);
+
+static const u32 sFirstEncounterIndicatorTile[] =
+{
+    0x00055600,
+    0x00566500,
+    0x05666650,
+    0x05666650,
+    0x05666650,
+    0x05666650,
+    0x00566500,
+    0x00055600,
+};
 
 static const struct OamData sOamData_64x32 =
 {
@@ -1746,6 +1759,8 @@ void TryAddPokeballIconToHealthbox(u8 healthboxSpriteId, bool8 noStatus)
 {
     enum BattlerId battler;
     u8 healthBarSpriteId;
+    bool32 showFirstEncounterIndicator;
+    bool32 speciesCaught;
 
     if (gBattleTypeFlags & BATTLE_TYPE_CATCH_TUTORIAL)
         return;
@@ -1757,15 +1772,33 @@ void TryAddPokeballIconToHealthbox(u8 healthboxSpriteId, bool8 noStatus)
         return;
     if (GetBattlerSide(battler) == B_SIDE_OPPONENT && IsGhostBattleWithoutScope())
         return;
-    if (!GetSetPokedexFlag(SpeciesToNationalPokedexNum(GetMonData(GetBattlerMon(battler), MON_DATA_SPECIES)), FLAG_GET_CAUGHT))
-        return;
 
     healthBarSpriteId = gSprites[healthboxSpriteId].hMain_HealthBarSpriteId;
+    showFirstEncounterIndicator = noStatus && ForkShouldShowFirstEncounterIndicator();
+    speciesCaught = GetSetPokedexFlag(SpeciesToNationalPokedexNum(GetMonData(GetBattlerMon(battler), MON_DATA_SPECIES)), FLAG_GET_CAUGHT);
 
-    if (noStatus)
+    switch (BattleInterface_GetCaughtIndicatorType(showFirstEncounterIndicator, speciesCaught, noStatus))
+    {
+    case BATTLE_CAUGHT_INDICATOR_FIRST_ENCOUNTER:
+        CpuCopy32(sFirstEncounterIndicatorTile, (void *)(OBJ_VRAM0 + (gSprites[healthBarSpriteId].oam.tileNum + 8) * TILE_SIZE_4BPP), 32);
+        break;
+    case BATTLE_CAUGHT_INDICATOR_CAUGHT:
         CpuCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_STATUS_BALL_CAUGHT), (void *)(OBJ_VRAM0 + (gSprites[healthBarSpriteId].oam.tileNum + 8) * TILE_SIZE_4BPP), 32);
-    else
+        break;
+    case BATTLE_CAUGHT_INDICATOR_NONE:
+    default:
         CpuFill32(0, (void *)(OBJ_VRAM0 + (gSprites[healthBarSpriteId].oam.tileNum + 8) * TILE_SIZE_4BPP), 32);
+        break;
+    }
+}
+
+enum BattleCaughtIndicatorType BattleInterface_GetCaughtIndicatorType(bool32 showFirstEncounterIndicator, bool32 speciesCaught, bool8 noStatus)
+{
+    if (showFirstEncounterIndicator)
+        return BATTLE_CAUGHT_INDICATOR_FIRST_ENCOUNTER;
+    if (speciesCaught && noStatus)
+        return BATTLE_CAUGHT_INDICATOR_CAUGHT;
+    return BATTLE_CAUGHT_INDICATOR_NONE;
 }
 
 static void UpdateStatusIconInHealthbox(u8 healthboxSpriteId)

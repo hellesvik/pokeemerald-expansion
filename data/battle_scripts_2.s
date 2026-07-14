@@ -173,6 +173,11 @@ BattleScript_BallThrow::
 	printstring STRINGID_PLAYERUSEDITEM
 	handleballthrow
 
+BattleScript_BallThrowBlocked::
+	printstring STRINGID_ITEMSCANTBEUSEDNOW
+	waitmessage B_WAIT_TIME_LONG
+	finishaction
+
 BattleScript_BallThrowByWally::
 	printstring STRINGID_TRAINER1USEDITEM
 	handleballthrow

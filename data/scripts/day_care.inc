@@ -267,6 +267,12 @@ EventScript_EggHatch::
 	releaseall
 	end
 
+EventScript_EggHatchBlockedByAreaRule::
+	lockall
+	msgbox Text_EggHatchBlockedByAreaRule, MSGBOX_DEFAULT
+	releaseall
+	end
+
 Route117_Text_SeeWifeIfYoudLikeMeToRaiseMon:
 	.string "I'm the DAY-CARE MAN.\p"
 	.string "I help take care of the precious\n"
@@ -401,6 +407,12 @@ Route117_PokemonDayCare_Text_WhatWillYouBattleWith:
 
 Text_EggHatchHuh:
 	.string "Huh?$"
+
+Text_EggHatchBlockedByAreaRule:
+	.string "This area's encounter has already\n"
+	.string "been used.\p"
+	.string "The EGG should hatch somewhere\n"
+	.string "else.$"
 
 Route117_PokemonDayCare_Text_YoullBeLeftWithJustOne:
 	.string "Huh?\n"

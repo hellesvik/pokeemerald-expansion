@@ -23,6 +23,7 @@
 #include "decompress.h"
 #include "dexnav.h"
 #include "dma3.h"
+#include "fork_run.h"
 #include "event_data.h"
 #include "evolution_scene.h"
 #include "frontier_util.h"
@@ -2984,11 +2985,8 @@ static void ClearSetBScriptingStruct(void)
     u32 specialBattleType = gBattleScripting.specialTrainerBattleType;
     memset(&gBattleScripting, 0, sizeof(gBattleScripting));
 
-    gBattleScripting.windowsType = temp;
-    gBattleScripting.battleStyle = gSaveBlock2Ptr->optionsBattleStyle;
-    #if TESTING
     gBattleScripting.battleStyle = OPTIONS_BATTLE_STYLE_SET;
-    #endif
+    gBattleScripting.windowsType = temp;
     gBattleScripting.expOnCatch = (GetConfig(B_EXP_CATCH) >= GEN_6);
     gBattleScripting.specialTrainerBattleType = specialBattleType;
 }

@@ -55,6 +55,8 @@
   - [How to use Dynamic Weather](tutorials/how_to_dynamic_weather.md)
   - [How to use Random Mon Generation](tutorials/how_to_random_mon_generator.md)
   - [How to use the Dynamic Multichoice](tutorials/how_to_dynmultichoice.md)
+  - [Fork Level Limits](tutorials/level_limits.md)
+  - [Fork One Catch Per Area](tutorials/one_catch_per_area.md)
 - [Changelog](./CHANGELOG.md)
     - [1.16.x]()
         - [Version 1.16.2](changelogs/1.16.x/1.16.2.md)

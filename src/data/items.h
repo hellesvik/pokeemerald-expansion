@@ -146,6 +146,8 @@ static const u8 sFigyBerryDesc[]      = _("A hold item that\n"
 const u8 gQuestionMarksItemName[] = _("????????");
 
 static const u8 sQuestionMarksDesc[]  = _("?????");
+static const u8 sInfiniteRareCandyDesc[] = _("A reusable candy that\nraises a Pokémon by\none level.");
+static const u8 sInfiniteRepelDesc[]  = _("A reusable spray that\nkeeps weak wild\nPokémon away.");
 
 static const u8 sKeyToRoomDesc[]      = _("A key that opens a\n"
                                           "door inside the\n"
@@ -2050,6 +2052,22 @@ const struct ItemInfo gItemsInfo[] =
         .iconPalette = gItemIconPalette_RareCandy,
     },
 
+    [ITEM_INFINITE_RARE_CANDY] =
+    {
+        .name = ITEM_NAME("Infinite Rare Candy"),
+        .price = 0,
+        .description = sInfiniteRareCandyDesc,
+        .pocket = POCKET_KEY_ITEMS,
+        .sortType = ITEM_TYPE_LEVEL_UP_ITEM,
+        .type = ITEM_USE_PARTY_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_RareCandy,
+        .effect = gItemEffect_RareCandy,
+        .importance = TRUE,
+        .notConsumed = TRUE,
+        .iconPic = gItemIcon_RareCandy,
+        .iconPalette = gItemIconPalette_RareCandy,
+    },
+
     [ITEM_EXP_CANDY_XS] =
     {
         .name = ITEM_NAME("Exp. Candy XS"),
@@ -2321,6 +2339,22 @@ const struct ItemInfo gItemsInfo[] =
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_Repel,
         .flingPower = 30,
+        .iconPic = gItemIcon_Repel,
+        .iconPalette = gItemIconPalette_MaxRepel,
+    },
+
+    [ITEM_INFINITE_REPEL] =
+    {
+        .name = ITEM_NAME("Infinite Repel"),
+        .price = 0,
+        .holdEffectParam = 255,
+        .description = sInfiniteRepelDesc,
+        .pocket = POCKET_KEY_ITEMS,
+        .sortType = ITEM_TYPE_FIELD_USE,
+        .type = ITEM_USE_FIELD,
+        .fieldUseFunc = ItemUseOutOfBattle_Repel,
+        .importance = TRUE,
+        .notConsumed = TRUE,
         .iconPic = gItemIcon_Repel,
         .iconPalette = gItemIconPalette_MaxRepel,
     },

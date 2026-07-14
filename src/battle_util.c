@@ -17,6 +17,7 @@
 #include "pokemon.h"
 #include "international_string_util.h"
 #include "item.h"
+#include "fork_run.h"
 #include "util.h"
 #include "battle_scripts.h"
 #include "random.h"
@@ -528,6 +529,13 @@ void HandleAction_UseItem(void)
     ClearVariousBattlerFlags(gBattlerAttacker);
 
     gLastUsedItem = gBattleResources->bufferB[gBattlerAttacker][1] | (gBattleResources->bufferB[gBattlerAttacker][2] << 8);
+    if (ForkShouldRejectSelectedBall(gLastUsedItem))
+    {
+        AddBagItem(gLastUsedItem, 1);
+        gBattlescriptCurrInstr = BattleScript_BallThrowBlocked;
+        gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+        return;
+    }
     if (X_ITEM_FRIENDSHIP_INCREASE > 0
         && GetItemEffectType(gLastUsedItem) == ITEM_EFFECT_X_ITEM
         && !ShouldSkipFriendshipChange())
@@ -743,6 +751,13 @@ void HandleAction_SafariZoneBallThrow(void)
     gBattlerAttacker = gBattlerByTurnOrder[gCurrentTurnActionNumber];
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
+    if (!ForkCanCatchCurrentEncounter())
+    {
+        gLastUsedItem = ITEM_SAFARI_BALL;
+        gBattlescriptCurrInstr = BattleScript_BallThrowBlocked;
+        gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+        return;
+    }
     gNumSafariBalls--;
     gLastUsedItem = ITEM_SAFARI_BALL;
     gBattlescriptCurrInstr = BattleScript_SafariBallThrow;
@@ -755,6 +770,12 @@ void HandleAction_ThrowBall(void)
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
     gLastUsedItem = gBallToDisplay;
+    if (ForkShouldRejectSelectedBall(gLastUsedItem))
+    {
+        gBattlescriptCurrInstr = BattleScript_BallThrowBlocked;
+        gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+        return;
+    }
     if (!GetItemImportance(gLastUsedItem))
         RemoveBagItem(gLastUsedItem, 1);
     gBattlescriptCurrInstr = BattleScript_BallThrow;

@@ -1,14 +1,65 @@
 #include "global.h"
 #include "battle.h"
+#include "battle_interface.h"
+#include "battle_setup.h"
+#include "caps.h"
 #include "egg_hatch.h"
 #include "event_data.h"
+#include "fork_run.h"
+#include "item_use.h"
 #include "new_game.h"
+#include "party_menu.h"
+#include "item.h"
+#include "pokedex.h"
 #include "pokemon.h"
+#include "pokemon_storage_system.h"
 #include "test/overworld_script.h"
 #include "test/test.h"
 #include "constants/characters.h"
 #include "constants/daycare.h"
+#include "constants/global.h"
+#include "constants/items.h"
 #include "constants/move_relearner.h"
+#include "constants/opponents.h"
+
+static void ClearForkLevelCapTrainerFlags(void)
+{
+    static const u16 sLevelCapTrainerFlags[] =
+    {
+        TRAINER_MAY_ROUTE_103_TREECKO,
+        TRAINER_ROXANNE_1,
+        TRAINER_MAY_RUSTBORO_TREECKO,
+        TRAINER_BRAWLY_1,
+        TRAINER_WALLY_MAUVILLE,
+        TRAINER_MAY_ROUTE_110_TREECKO,
+        TRAINER_WATTSON_1,
+        TRAINER_TABITHA_MT_CHIMNEY,
+        TRAINER_MAXIE_MT_CHIMNEY,
+        TRAINER_FLANNERY_1,
+        TRAINER_NORMAN_1,
+        TRAINER_MAY_ROUTE_119_TREECKO,
+        TRAINER_SHELLY_WEATHER_INSTITUTE,
+        TRAINER_WINONA_1,
+        TRAINER_MAY_LILYCOVE_TREECKO,
+        TRAINER_MAXIE_MAGMA_HIDEOUT,
+        TRAINER_MATT,
+        TRAINER_TATE_AND_LIZA_1,
+        TRAINER_MAXIE_MOSSDEEP,
+        TRAINER_SHELLY_SEAFLOOR_CAVERN,
+        TRAINER_ARCHIE,
+        TRAINER_JUAN_1,
+        TRAINER_WALLY_VR_1,
+        TRAINER_SIDNEY,
+        TRAINER_PHOEBE,
+        TRAINER_GLACIA,
+        TRAINER_DRAKE,
+        TRAINER_WALLACE,
+        TRAINER_STEVEN,
+    };
+
+    for (u32 i = 0; i < ARRAY_COUNT(sLevelCapTrainerFlags); i++)
+        ClearTrainerFlag(sLevelCapTrainerFlags[i]);
+}
 
 TEST("Nature independent from Hidden Nature")
 {
@@ -27,6 +78,261 @@ TEST("Nature independent from Hidden Nature")
     SetMonData(&mon, MON_DATA_HIDDEN_NATURE, &hiddenNature);
     EXPECT_EQ(GetNature(&mon), nature);
     EXPECT_EQ(GetMonData(&mon, MON_DATA_HIDDEN_NATURE), hiddenNature);
+}
+
+TEST("Fork rules enable a hard story-battle level cap while leaving one-use Rare Candy uncapped")
+{
+    ClearForkLevelCapTrainerFlags();
+
+    EXPECT_EQ(B_EXP_CAP_TYPE, EXP_CAP_HARD);
+    EXPECT_EQ(B_LEVEL_CAP_TYPE, LEVEL_CAP_FLAG_LIST);
+    EXPECT_EQ(B_RARE_CANDY_CAP, FALSE);
+    EXPECT_EQ(GetCurrentLevelCap(), 15);
+
+    SetTrainerFlag(TRAINER_MAY_ROUTE_103_TREECKO);
+    EXPECT_EQ(GetCurrentLevelCap(), 15);
+
+    SetTrainerFlag(TRAINER_ROXANNE_1);
+    SetTrainerFlag(TRAINER_MAY_RUSTBORO_TREECKO);
+    SetTrainerFlag(TRAINER_BRAWLY_1);
+    EXPECT_EQ(GetCurrentLevelCap(), 16);
+
+    SetTrainerFlag(TRAINER_WALLY_MAUVILLE);
+    SetTrainerFlag(TRAINER_MAY_ROUTE_110_TREECKO);
+    SetTrainerFlag(TRAINER_WATTSON_1);
+    SetTrainerFlag(TRAINER_TABITHA_MT_CHIMNEY);
+    SetTrainerFlag(TRAINER_MAXIE_MT_CHIMNEY);
+    SetTrainerFlag(TRAINER_FLANNERY_1);
+    SetTrainerFlag(TRAINER_NORMAN_1);
+    SetTrainerFlag(TRAINER_MAY_ROUTE_119_TREECKO);
+    EXPECT_EQ(GetCurrentLevelCap(), 28);
+
+    SetTrainerFlag(TRAINER_SHELLY_WEATHER_INSTITUTE);
+    SetTrainerFlag(TRAINER_WINONA_1);
+    SetTrainerFlag(TRAINER_MAY_LILYCOVE_TREECKO);
+    SetTrainerFlag(TRAINER_MAXIE_MAGMA_HIDEOUT);
+    SetTrainerFlag(TRAINER_MATT);
+    SetTrainerFlag(TRAINER_TATE_AND_LIZA_1);
+    SetTrainerFlag(TRAINER_MAXIE_MOSSDEEP);
+    SetTrainerFlag(TRAINER_SHELLY_SEAFLOOR_CAVERN);
+    SetTrainerFlag(TRAINER_ARCHIE);
+    SetTrainerFlag(TRAINER_JUAN_1);
+    SetTrainerFlag(TRAINER_WALLY_VR_1);
+    EXPECT_EQ(GetCurrentLevelCap(), 49);
+
+    SetTrainerFlag(TRAINER_SIDNEY);
+    SetTrainerFlag(TRAINER_PHOEBE);
+    SetTrainerFlag(TRAINER_GLACIA);
+    SetTrainerFlag(TRAINER_DRAKE);
+    EXPECT_EQ(GetCurrentLevelCap(), 58);
+
+    SetTrainerFlag(TRAINER_WALLACE);
+    EXPECT_EQ(GetCurrentLevelCap(), 58);
+
+    SetTrainerFlag(TRAINER_STEVEN);
+    EXPECT_EQ(GetCurrentLevelCap(), MAX_LEVEL);
+}
+
+TEST("Fork rules disable EV gain and expose raw IV values on the summary screen")
+{
+    EXPECT_EQ(B_EV_CAP_TYPE, EV_CAP_NO_GAIN);
+    EXPECT_EQ(P_SUMMARY_SCREEN_IV_ONLY, TRUE);
+    EXPECT_EQ(P_SUMMARY_SCREEN_IV_EV_VALUES, TRUE);
+}
+
+TEST("Fork rules only allow catching the first legal wild encounter")
+{
+    ZeroEnemyPartyMons();
+    ZeroPlayerPartyMons();
+    ResetPokemonStorageSystem();
+    ResetPokedex();
+    ForkResetAreaEncounterState();
+    gSaveBlock1Ptr->location.mapGroup = MAP_GROUP(MAP_ROUTE101);
+    gSaveBlock1Ptr->location.mapNum = MAP_NUM(MAP_ROUTE101);
+    gBattleTypeFlags = 0;
+    FlagClear(WE_FLAG_NO_CATCHING);
+
+    ForkPrepareWildEncounter();
+    CreateMon(&gParties[B_TRAINER_OPPONENT_A][0], SPECIES_POOCHYENA, 3, 0, OTID_STRUCT_PLAYER_ID);
+    ForkResolveWildEncounter();
+    EXPECT_EQ(CanThrowBall(), TRUE);
+    EXPECT_EQ(CanThrowLastUsedBall(), TRUE);
+    ForkFinalizeWildEncounter();
+
+    ZeroEnemyPartyMons();
+    ForkPrepareWildEncounter();
+    CreateMon(&gParties[B_TRAINER_OPPONENT_A][0], SPECIES_ZIGZAGOON, 3, 0, OTID_STRUCT_PLAYER_ID);
+    ForkResolveWildEncounter();
+    EXPECT_EQ(CanThrowBall(), FALSE);
+    EXPECT_EQ(CanThrowLastUsedBall(), FALSE);
+
+    ForkResetAreaEncounterState();
+    GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_POOCHYENA), FLAG_SET_CAUGHT);
+    ZeroEnemyPartyMons();
+    ForkPrepareWildEncounter();
+    CreateMon(&gParties[B_TRAINER_OPPONENT_A][0], SPECIES_MIGHTYENA, 3, 0, OTID_STRUCT_PLAYER_ID);
+    ForkResolveWildEncounter();
+    EXPECT_EQ(CanThrowBall(), FALSE);
+    EXPECT_EQ(CanThrowLastUsedBall(), FALSE);
+}
+
+TEST("Fork rules track one encounter per named area")
+{
+    ForkResetAreaEncounterState();
+    EXPECT_EQ(ForkIsAreaEncounterSpent(MAPSEC_ROUTE_101), FALSE);
+    ForkSetAreaEncounterSpent(MAPSEC_ROUTE_101);
+    EXPECT_EQ(ForkIsAreaEncounterSpent(MAPSEC_ROUTE_101), TRUE);
+    EXPECT_EQ(ForkIsAreaEncounterSpent(MAPSEC_ROUTE_102), FALSE);
+}
+
+TEST("Fork rules can resolve a wild encounter after battle setup creates the opponent mon")
+{
+    ZeroEnemyPartyMons();
+    ZeroPlayerPartyMons();
+    ResetPokemonStorageSystem();
+    ResetPokedex();
+    ForkResetAreaEncounterState();
+    gSaveBlock1Ptr->location.mapGroup = MAP_GROUP(MAP_ROUTE101);
+    gSaveBlock1Ptr->location.mapNum = MAP_NUM(MAP_ROUTE101);
+
+    ForkPrepareWildEncounter();
+    CreateMon(&gParties[B_TRAINER_OPPONENT_A][0], SPECIES_POOCHYENA, 3, 0, OTID_STRUCT_PLAYER_ID);
+    ForkResolveWildEncounter();
+
+    EXPECT_EQ(ForkCanCatchCurrentEncounter(), TRUE);
+    EXPECT_EQ(ForkShouldShowFirstEncounterIndicator(), TRUE);
+    ForkFinalizeWildEncounter();
+    EXPECT_EQ(ForkIsAreaEncounterSpent(MAPSEC_ROUTE_101), TRUE);
+
+    ZeroEnemyPartyMons();
+    ForkPrepareWildEncounter();
+    CreateMon(&gParties[B_TRAINER_OPPONENT_A][0], SPECIES_ZIGZAGOON, 3, 0, OTID_STRUCT_PLAYER_ID);
+    ForkResolveWildEncounter();
+    EXPECT_EQ(ForkCanCatchCurrentEncounter(), FALSE);
+    EXPECT_EQ(ForkShouldShowFirstEncounterIndicator(), FALSE);
+    EXPECT_EQ(ForkShouldRejectSelectedBall(ITEM_POKE_BALL), TRUE);
+    EXPECT_EQ(ForkShouldRejectSelectedBall(ITEM_POTION), FALSE);
+}
+
+TEST("Fork rules prefer the first-encounter indicator over the caught icon tile")
+{
+    EXPECT_EQ(BattleInterface_GetCaughtIndicatorType(TRUE, TRUE, TRUE), BATTLE_CAUGHT_INDICATOR_FIRST_ENCOUNTER);
+    EXPECT_EQ(BattleInterface_GetCaughtIndicatorType(FALSE, TRUE, TRUE), BATTLE_CAUGHT_INDICATOR_CAUGHT);
+    EXPECT_EQ(BattleInterface_GetCaughtIndicatorType(FALSE, TRUE, FALSE), BATTLE_CAUGHT_INDICATOR_NONE);
+    EXPECT_EQ(BattleInterface_GetCaughtIndicatorType(FALSE, FALSE, TRUE), BATTLE_CAUGHT_INDICATOR_NONE);
+}
+
+TEST("Fork rules treat owned evolutionary families as dupes from party, storage, daycare, and pokedex")
+{
+    struct Pokemon mon;
+    ZeroPlayerPartyMons();
+    ResetPokemonStorageSystem();
+    ZeroBoxMonData(&gSaveBlock1Ptr->daycare.mons[0].mon);
+    ZeroBoxMonData(&gSaveBlock1Ptr->daycare.mons[1].mon);
+    ResetPokedex();
+
+    CreateMon(&gParties[B_TRAINER_PLAYER][0], SPECIES_BULBASAUR, 5, 0, OTID_STRUCT_PLAYER_ID);
+    EXPECT_EQ(ForkPlayerOwnsSpeciesFamily(SPECIES_VENUSAUR), TRUE);
+
+    ZeroPlayerPartyMons();
+    CreateMon(&mon, SPECIES_CHARMANDER, 5, 0, OTID_STRUCT_PLAYER_ID);
+    CopyMon(GetBoxedMonPtr(0, 0), &mon.box, sizeof(mon.box));
+    EXPECT_EQ(ForkPlayerOwnsSpeciesFamily(SPECIES_CHARIZARD), TRUE);
+
+    ZeroBoxMonData(GetBoxedMonPtr(0, 0));
+    CreateMon(&mon, SPECIES_SQUIRTLE, 5, 0, OTID_STRUCT_PLAYER_ID);
+    CopyMon(&gSaveBlock1Ptr->daycare.mons[0].mon, &mon.box, sizeof(mon.box));
+    EXPECT_EQ(ForkPlayerOwnsSpeciesFamily(SPECIES_BLASTOISE), TRUE);
+
+    ZeroBoxMonData(&gSaveBlock1Ptr->daycare.mons[0].mon);
+    GetSetPokedexFlag(SpeciesToNationalPokedexNum(SPECIES_CATERPIE), FLAG_SET_CAUGHT);
+    EXPECT_EQ(ForkPlayerOwnsSpeciesFamily(SPECIES_BUTTERFREE), TRUE);
+}
+
+TEST("Fork rules mark soft nuzlocke mons and stop further level gains")
+{
+    struct Pokemon mon;
+    u32 softNuzlocke = TRUE;
+    u32 exp;
+
+    CreateMon(&mon, SPECIES_WOBBUFFET, 10, 0, OTID_STRUCT_PLAYER_ID);
+    SetMonData(&mon, MON_DATA_SOFT_NUZLOCKE, &softNuzlocke);
+    exp = gExperienceTables[gSpeciesInfo[SPECIES_WOBBUFFET].growthRate][11];
+    SetMonData(&mon, MON_DATA_EXP, &exp);
+
+    EXPECT_EQ(ForkIsSoftNuzlockeMon(&mon), TRUE);
+    EXPECT_EQ(TryIncrementMonLevel(&mon), FALSE);
+    EXPECT_EQ(GetMonData(&mon, MON_DATA_LEVEL), 10);
+}
+
+TEST("Fork rules zero EVs on player-owned mons added to party and storage")
+{
+    struct Pokemon mon;
+    u8 ev = 42;
+
+    ZeroPlayerPartyMons();
+    ResetPokemonStorageSystem();
+    CreateMon(&mon, SPECIES_WOBBUFFET, 10, 0, OTID_STRUCT_PLAYER_ID);
+    SetMonData(&mon, MON_DATA_ATK_EV, &ev);
+    SetMonData(&mon, MON_DATA_SPEED_EV, &ev);
+
+    EXPECT_EQ(GiveScriptedMonToPlayer(&mon, PARTY_SIZE), MON_GIVEN_TO_PARTY);
+    EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_ATK_EV), 0);
+    EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_SPEED_EV), 0);
+
+    ZeroPlayerPartyMons();
+    for (u32 i = 0; i < PARTY_SIZE; i++)
+        CreateMon(&gParties[B_TRAINER_PLAYER][i], SPECIES_POOCHYENA + i, 5, 0, OTID_STRUCT_PLAYER_ID);
+
+    CreateMon(&mon, SPECIES_WOBBUFFET, 10, 0, OTID_STRUCT_PLAYER_ID);
+    SetMonData(&mon, MON_DATA_ATK_EV, &ev);
+    EXPECT_EQ(CopyMonToPC(&mon), MON_GIVEN_TO_PC);
+    EXPECT_EQ(GetBoxMonData(GetBoxedMonPtr(0, 0), MON_DATA_ATK_EV), 0);
+}
+
+TEST("Fork rules distribute infinite key items on new game and continue")
+{
+    NewGameInitData();
+    ForkEnsureKeyItemsPresent();
+
+    EXPECT_EQ(CheckBagHasItem(ITEM_INFINITE_RARE_CANDY, 1), TRUE);
+    EXPECT_EQ(CheckBagHasItem(ITEM_INFINITE_REPEL, 1), TRUE);
+}
+
+TEST("Fork rules force battle style to Set by default")
+{
+    u32 battleStyle;
+
+    NewGameInitData();
+    battleStyle = gSaveBlock2Ptr->optionsBattleStyle;
+    EXPECT_EQ(battleStyle, OPTIONS_BATTLE_STYLE_SET);
+}
+
+TEST("Fork rules ban battle items in trainer battles")
+{
+    struct Pokemon mon;
+    u32 hp;
+
+    CreateMon(&mon, SPECIES_WOBBUFFET, 10, 0, OTID_STRUCT_PLAYER_ID);
+    hp = GetMonData(&mon, MON_DATA_MAX_HP) - 1;
+    SetMonData(&mon, MON_DATA_HP, &hp);
+    gPartyMenu.slotId = 0;
+
+    gBattleTypeFlags = 0;
+    EXPECT_EQ(CannotUseItemsInBattle(ITEM_POTION, &mon), FALSE);
+
+    gBattleTypeFlags = BATTLE_TYPE_TRAINER;
+    EXPECT_EQ(CannotUseItemsInBattle(ITEM_POTION, &mon), TRUE);
+}
+
+TEST("Fork rules let Infinite Repel toggle off when used again")
+{
+    VarSet(VAR_REPEL_STEP_COUNT, 0);
+    EXPECT_EQ(ToggleInfiniteRepelState(), TRUE);
+    EXPECT_EQ(VarGet(VAR_REPEL_STEP_COUNT), 0x7FFF);
+
+    EXPECT_EQ(ToggleInfiniteRepelState(), FALSE);
+    EXPECT_EQ(VarGet(VAR_REPEL_STEP_COUNT), 0);
 }
 
 TEST("Terastallization type defaults to primary or secondary type")

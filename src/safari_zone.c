@@ -11,6 +11,7 @@
 #include "tv.h"
 #include "constants/game_stat.h"
 #include "field_screen_effect.h"
+#include "fork_run.h"
 
 struct PokeblockFeeder
 {
@@ -102,6 +103,7 @@ void CB2_EndSafariBattle(void)
     sSafariZonePkblkUses += gBattleResults.pokeblockThrows;
     if (gBattleOutcome == B_OUTCOME_CAUGHT)
         sSafariZoneCaughtMons++;
+    ForkFinalizeWildEncounter();
     if (gNumSafariBalls != 0)
     {
         SetMainCallback2(CB2_ReturnToField);

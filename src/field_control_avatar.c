@@ -18,6 +18,7 @@
 #include "field_player_avatar.h"
 #include "field_poison.h"
 #include "field_screen_effect.h"
+#include "fork_run.h"
 #include "field_specials.h"
 #include "fldeff_misc.h"
 #include "follower_npc.h"
@@ -767,8 +768,16 @@ static bool8 TryStartStepCountScript(u16 metatileBehavior)
     #endif
         if (ShouldEggHatch())
         {
-            IncrementGameStat(GAME_STAT_HATCHED_EGGS);
-            ScriptContext_SetupScript(EventScript_EggHatch);
+            if (ForkShouldBlockEggHatchInCurrentArea())
+            {
+                ScriptContext_SetupScript(EventScript_EggHatchBlockedByAreaRule);
+            }
+            else
+            {
+                ForkSpendCurrentAreaEncounter();
+                IncrementGameStat(GAME_STAT_HATCHED_EGGS);
+                ScriptContext_SetupScript(EventScript_EggHatch);
+            }
             return TRUE;
         }
         if (AbnormalWeatherHasExpired() == TRUE)

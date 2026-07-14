@@ -246,7 +246,7 @@ void CB2_InitOptionMenu(void)
         gTasks[taskId].tMenuSelection = 0;
         gTasks[taskId].tTextSpeed = gSaveBlock2Ptr->optionsTextSpeed;
         gTasks[taskId].tBattleSceneOff = gSaveBlock2Ptr->optionsBattleSceneOff;
-        gTasks[taskId].tBattleStyle = gSaveBlock2Ptr->optionsBattleStyle;
+        gTasks[taskId].tBattleStyle = OPTIONS_BATTLE_STYLE_SET;
         gTasks[taskId].tSound = gSaveBlock2Ptr->optionsSound;
         gTasks[taskId].tButtonMode = gSaveBlock2Ptr->optionsButtonMode;
         gTasks[taskId].tWindowFrameType = gSaveBlock2Ptr->optionsWindowFrameType;
@@ -325,11 +325,17 @@ static void Task_OptionMenuProcessInput(u8 taskId)
                 BattleScene_DrawChoices(gTasks[taskId].tBattleSceneOff);
             break;
         case MENUITEM_BATTLESTYLE:
-            previousOption = gTasks[taskId].tBattleStyle;
-            gTasks[taskId].tBattleStyle = BattleStyle_ProcessInput(gTasks[taskId].tBattleStyle);
-
-            if (previousOption != gTasks[taskId].tBattleStyle)
+            if (gTasks[taskId].tBattleStyle != OPTIONS_BATTLE_STYLE_SET)
+            {
+                gTasks[taskId].tBattleStyle = OPTIONS_BATTLE_STYLE_SET;
                 BattleStyle_DrawChoices(gTasks[taskId].tBattleStyle);
+            }
+            else
+            {
+                previousOption = BattleStyle_ProcessInput(gTasks[taskId].tBattleStyle);
+                if (previousOption != gTasks[taskId].tBattleStyle)
+                    BattleStyle_DrawChoices(gTasks[taskId].tBattleStyle);
+            }
             break;
         case MENUITEM_SOUND:
             previousOption = gTasks[taskId].tSound;
@@ -368,7 +374,7 @@ static void Task_OptionMenuSave(u8 taskId)
 {
     gSaveBlock2Ptr->optionsTextSpeed = gTasks[taskId].tTextSpeed;
     gSaveBlock2Ptr->optionsBattleSceneOff = gTasks[taskId].tBattleSceneOff;
-    gSaveBlock2Ptr->optionsBattleStyle = gTasks[taskId].tBattleStyle;
+    gSaveBlock2Ptr->optionsBattleStyle = OPTIONS_BATTLE_STYLE_SET;
     gSaveBlock2Ptr->optionsSound = gTasks[taskId].tSound;
     gSaveBlock2Ptr->optionsButtonMode = gTasks[taskId].tButtonMode;
     gSaveBlock2Ptr->optionsWindowFrameType = gTasks[taskId].tWindowFrameType;

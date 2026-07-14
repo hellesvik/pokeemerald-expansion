@@ -23,6 +23,7 @@
 #include "field_weather.h"
 #include "fishing.h"
 #include "follower_npc.h"
+#include "fork_run.h"
 #include "frontier_util.h"
 #include "graphics.h"
 #include "item.h"
@@ -2469,6 +2470,9 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
                 }.combinedValue;
             }
             break;
+        case MON_DATA_SOFT_NUZLOCKE:
+            retVal = boxMon->softNuzlocke;
+            break;
         default:
             break;
         }
@@ -2901,6 +2905,9 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
             substruct1->evolutionTracker2 = evoTracker.tracker2;
             break;
         }
+        case MON_DATA_SOFT_NUZLOCKE:
+            SET8(boxMon->softNuzlocke);
+            break;
         default:
             break;
         }
@@ -2988,6 +2995,7 @@ u8 GiveCapturedMonToPlayer(struct Pokemon *mon)
     SetMonData(mon, MON_DATA_OT_NAME, gSaveBlock2Ptr->playerName);
     SetMonData(mon, MON_DATA_OT_GENDER, &gSaveBlock2Ptr->playerGender);
     SetMonData(mon, MON_DATA_OT_ID, gSaveBlock2Ptr->playerTrainerId);
+    ForkNormalizePlayerMon(mon);
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
@@ -3006,6 +3014,8 @@ u8 GiveCapturedMonToPlayer(struct Pokemon *mon)
 u8 CopyMonToPC(struct Pokemon *mon)
 {
     s32 boxNo, boxPos;
+
+    ForkNormalizePlayerMon(mon);
 
     SetPCBoxToSendMon(VarGet(VAR_PC_BOX_TO_SEND_MON));
 
@@ -5172,6 +5182,10 @@ bool8 TryIncrementMonLevel(struct Pokemon *mon)
     enum Species species = GetMonData(mon, MON_DATA_SPECIES, 0);
     u8 nextLevel = GetMonData(mon, MON_DATA_LEVEL, 0) + 1;
     u32 expPoints = GetMonData(mon, MON_DATA_EXP, 0);
+
+    if (ForkIsSoftNuzlockeMon(mon))
+        return FALSE;
+
     if (expPoints > gExperienceTables[gSpeciesInfo[species].growthRate][MAX_LEVEL])
     {
         expPoints = gExperienceTables[gSpeciesInfo[species].growthRate][MAX_LEVEL];
@@ -5839,6 +5853,8 @@ void HandleSetPokedexFlag(enum NationalDexOrder nationalNum, u8 caseId, u32 pers
     if (!GetSetPokedexFlag(nationalNum, getFlagCaseId)) // don't set if it's already set
     {
         GetSetPokedexFlag(nationalNum, caseId);
+        if (caseId == FLAG_SET_CAUGHT)
+            ForkRecordOwnedSpecies(NationalPokedexNumToSpecies(nationalNum));
         if (NationalPokedexNumToSpecies(nationalNum) == SPECIES_UNOWN)
             gSaveBlock2Ptr->pokedex.unownPersonality = personality;
         if (NationalPokedexNumToSpecies(nationalNum) == SPECIES_SPINDA)
@@ -6857,6 +6873,8 @@ u32 GiveScriptedMonToPlayer(struct Pokemon *mon, u8 slot)
 {
     u32 sentToPc;
     u32 i = 0;
+
+    ForkNormalizePlayerMon(mon);
     if (slot < PARTY_SIZE)
     {
         CopyMon(&gParties[B_TRAINER_PLAYER][slot], mon, sizeof(struct Pokemon));
