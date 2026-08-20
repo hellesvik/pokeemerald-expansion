@@ -253,10 +253,11 @@ struct NPCFollower
 #include "constants/items.h"
 #define ITEM_FLAGS_COUNT ((ITEMS_COUNT / 8) + ((ITEMS_COUNT % 8) ? 1 : 0))
 #define FORK_ITEM_RANDOMIZER_SOURCE_COUNT 429
-#define FORK_ITEM_RANDOMIZER_POOL_COUNT 313
+#define FORK_ITEM_RANDOMIZER_POOL_COUNT 393
 #define FORK_ITEM_RANDOMIZER_SOURCE_BITSET_COUNT ((FORK_ITEM_RANDOMIZER_SOURCE_COUNT + 7) / 8)
 #define FORK_ITEM_RANDOMIZER_POOL_BITSET_COUNT ((FORK_ITEM_RANDOMIZER_POOL_COUNT + 7) / 8)
 #define FORK_ITEM_RANDOMIZER_UNASSIGNED 0xFFFF
+#define FORK_GAME_CORNER_PRIZE_COUNT 5
 
 struct SaveBlock3
 {
@@ -277,8 +278,13 @@ struct SaveBlock3
     u8 apricornTrees[NUM_APRICORN_TREE_BYTES];
 #endif
     u32 forkItemRandomizerSeed;
+    u32 forkEncounterRandomizerSeed;
     u16 forkItemRandomizerVersion;
+    u16 forkEncounterRandomizerVersion;
+    u16 forkTMRandomizerVersion;
     u16 forkItemRandomizerNextScan;
+    u16 forkRandomizedTMMoves[80];
+    u16 forkGameCornerPrizeItems[FORK_GAME_CORNER_PRIZE_COUNT];
     u16 forkItemRandomizerSourceToPoolIndex[FORK_ITEM_RANDOMIZER_SOURCE_COUNT];
     u8 forkItemRandomizerSourceAssigned[FORK_ITEM_RANDOMIZER_SOURCE_BITSET_COUNT];
     u8 forkItemRandomizerPoolClaimed[FORK_ITEM_RANDOMIZER_POOL_BITSET_COUNT];

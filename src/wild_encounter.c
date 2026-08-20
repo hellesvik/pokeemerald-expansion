@@ -22,6 +22,7 @@
 #include "tv.h"
 #include "wild_encounter.h"
 #include "fork_run.h"
+#include "fork_encounter_randomizer.h"
 #include "battle_debug.h"
 #include "battle_pike.h"
 #include "battle_pyramid.h"
@@ -466,6 +467,7 @@ static u8 PickWildMonNature(enum Species species)
 
 void CreateWildMon(enum Species species, u8 level)
 {
+    ForkPrepareWildEncounter();
     ZeroEnemyPartyMons();
     u32 personality = GetMonPersonality(species, GetSynchronizedGender(WILDMON_ORIGIN, species), PickWildMonNature(species), RANDOM_UNOWN_LETTER);
     CreateMonWithIVs(&gParties[B_TRAINER_OPPONENT_A][0], species, level, personality, OTID_STRUCT_PLAYER_ID, USE_RANDOM_IVS);
@@ -533,14 +535,24 @@ bool8 TryGenerateWildMon(const struct WildPokemonInfo *wildMonInfo, enum WildPok
     if (gMapHeader.mapLayoutId != LAYOUT_BATTLE_FRONTIER_BATTLE_PIKE_ROOM_WILD_MONS && flags & WILD_CHECK_KEEN_EYE && !IsAbilityAllowingEncounter(level))
         return FALSE;
 
-    CreateWildMon(wildMonInfo->wildPokemon[wildMonIndex].species, level);
+    CreateWildMon(ResolveForkRandomizedEncounterSpecies(
+        gSaveBlock1Ptr->location.mapGroup,
+        gSaveBlock1Ptr->location.mapNum,
+        area,
+        wildMonIndex,
+        wildMonInfo->wildPokemon[wildMonIndex].species), level);
     return TRUE;
 }
 
 static u16 GenerateFishingWildMon(const struct WildPokemonInfo *wildMonInfo, u8 rod)
 {
     u8 wildMonIndex = ChooseWildMonIndex_Fishing(rod);
-    enum Species wildMonSpecies = wildMonInfo->wildPokemon[wildMonIndex].species;
+    enum Species wildMonSpecies = ResolveForkRandomizedEncounterSpecies(
+        gSaveBlock1Ptr->location.mapGroup,
+        gSaveBlock1Ptr->location.mapNum,
+        WILD_AREA_FISHING,
+        wildMonIndex,
+        wildMonInfo->wildPokemon[wildMonIndex].species);
     u8 level = ChooseWildMonLevel(wildMonInfo->wildPokemon, wildMonIndex, WILD_AREA_FISHING);
 
     UpdateChainFishingStreak();
@@ -937,7 +949,12 @@ void FishingWildEncounter(u8 rod)
     {
         u8 level = ChooseWildMonLevel(&gWildFeebas, 0, WILD_AREA_FISHING);
 
-        species = gWildFeebas.species;
+        species = ResolveForkRandomizedEncounterSpecies(
+            gSaveBlock1Ptr->location.mapGroup,
+            gSaveBlock1Ptr->location.mapNum,
+            WILD_AREA_FISHING,
+            0,
+            gWildFeebas.species);
         CreateWildMon(species, level);
     }
     else

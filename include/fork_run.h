@@ -5,6 +5,7 @@
 #include "pokemon.h"
 
 void ForkResetAreaEncounterState(void);
+bool32 ForkIsAreaEncounterRuleActive(void);
 bool32 ForkIsAreaEncounterSpent(mapsec_u8_t mapSecId);
 void ForkSetAreaEncounterSpent(mapsec_u8_t mapSecId);
 bool32 ForkPlayerOwnsSpeciesFamily(enum Species species);

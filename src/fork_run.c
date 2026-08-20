@@ -50,6 +50,13 @@ static mapsec_u8_t ForkGetCurrentMapSec(void)
     return CorrectSpecialMapSecId(GetCurrentRegionMapSectionId());
 }
 
+bool32 ForkIsAreaEncounterRuleActive(void)
+{
+    // This flag is set immediately after Birch's successful five-Poké-Ball
+    // gift, so early forced encounters never consume an area.
+    return FlagGet(FLAG_ADVENTURE_STARTED);
+}
+
 static void EnsureAreaStateInitialized(void)
 {
     if (FlagGet(FORK_AREA_STATE_INIT_FLAG))
@@ -170,6 +177,12 @@ static void ResolveCurrentEncounterState(void)
 
     if (!sForkEncounterActive || sForkEncounterResolved || sForkEncounterMapSec >= MAPSEC_COUNT)
         return;
+
+    if (!ForkIsAreaEncounterRuleActive())
+    {
+        sForkEncounterResolved = TRUE;
+        return;
+    }
 
     mon = &gParties[B_TRAINER_OPPONENT_A][0];
     species = GetMonData(mon, MON_DATA_SPECIES);
@@ -351,14 +364,14 @@ bool32 ForkShouldBlockEggHatchInCurrentArea(void)
 {
     mapsec_u8_t mapSecId = ForkGetCurrentMapSec();
 
-    return mapSecId < MAPSEC_COUNT && ForkIsAreaEncounterSpent(mapSecId);
+    return ForkIsAreaEncounterRuleActive() && mapSecId < MAPSEC_COUNT && ForkIsAreaEncounterSpent(mapSecId);
 }
 
 void ForkSpendCurrentAreaEncounter(void)
 {
     mapsec_u8_t mapSecId = ForkGetCurrentMapSec();
 
-    if (mapSecId < MAPSEC_COUNT)
+    if (ForkIsAreaEncounterRuleActive() && mapSecId < MAPSEC_COUNT)
         ForkSetAreaEncounterSpent(mapSecId);
 }
 

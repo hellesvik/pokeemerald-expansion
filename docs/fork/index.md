@@ -9,7 +9,12 @@ This folder contains the main gameplay-rule documentation for this fork.
 - [Level Limits](./level_limits.md)
 - [Original AI Summary Source](../../ai-remake-summary.txt)
 - [Item Randomizer Spec](./item_randomizer.md)
+- [TM Randomizer](./tm_randomizer.md)
+- [Biome Encounter Randomizer](./biome_encounter_randomizer.md)
+- [Biome Species Catalog — CSV](./biome_species_catalog.csv)
+- [Biome Encounter Assignments — CSV](./biome_encounter_assignments.csv)
 
-## Planned Rules
+## Reference Data
 
-- [Item randomization spec for non-progression pickups and eligible scripted rewards](./item_randomizer.md)
+- [Biome-by-biome eligible species catalog](./biome_species_catalog.csv)
+- [Biome encounter map/method assignments](./biome_encounter_assignments.csv)

@@ -17,10 +17,12 @@
 #include "test/test.h"
 #include "constants/characters.h"
 #include "constants/daycare.h"
+#include "constants/flags.h"
 #include "constants/global.h"
 #include "constants/items.h"
 #include "constants/move_relearner.h"
 #include "constants/opponents.h"
+#include "wild_encounter.h"
 
 static void ClearForkLevelCapTrainerFlags(void)
 {
@@ -147,6 +149,8 @@ TEST("Fork rules only allow catching the first legal wild encounter")
     ResetPokemonStorageSystem();
     ResetPokedex();
     ForkResetAreaEncounterState();
+    ForkInvalidateOwnedFamilyCache();
+    FlagSet(FLAG_ADVENTURE_STARTED);
     gSaveBlock1Ptr->location.mapGroup = MAP_GROUP(MAP_ROUTE101);
     gSaveBlock1Ptr->location.mapNum = MAP_NUM(MAP_ROUTE101);
     gBattleTypeFlags = 0;
@@ -174,6 +178,36 @@ TEST("Fork rules only allow catching the first legal wild encounter")
     ForkResolveWildEncounter();
     EXPECT_EQ(CanThrowBall(), FALSE);
     EXPECT_EQ(CanThrowLastUsedBall(), FALSE);
+}
+
+TEST("Fork rules do not spend an area encounter before Professor Birch gives Poké Balls")
+{
+    ZeroEnemyPartyMons();
+    ZeroPlayerPartyMons();
+    ResetPokemonStorageSystem();
+    ResetPokedex();
+    ForkResetAreaEncounterState();
+    ForkInvalidateOwnedFamilyCache();
+    gSaveBlock1Ptr->location.mapGroup = MAP_GROUP(MAP_ROUTE101);
+    gSaveBlock1Ptr->location.mapNum = MAP_NUM(MAP_ROUTE101);
+    gMapHeader.regionMapSectionId = MAPSEC_ROUTE_101;
+    FlagClear(FLAG_ADVENTURE_STARTED);
+    EXPECT_EQ(ForkPlayerOwnsSpeciesFamily(SPECIES_ABRA), FALSE);
+
+    ForkPrepareWildEncounter();
+    CreateMon(&gParties[B_TRAINER_OPPONENT_A][0], SPECIES_ABRA, 3, 0, OTID_STRUCT_PLAYER_ID);
+    ForkResolveWildEncounter();
+    ForkFinalizeWildEncounter();
+
+    EXPECT_EQ(ForkIsAreaEncounterSpent(MAPSEC_ROUTE_101), FALSE);
+}
+
+TEST("Fork area encounter rule starts after Professor Birch gives Poké Balls")
+{
+    FlagClear(FLAG_ADVENTURE_STARTED);
+    EXPECT_EQ(ForkIsAreaEncounterRuleActive(), FALSE);
+    FlagSet(FLAG_ADVENTURE_STARTED);
+    EXPECT_EQ(ForkIsAreaEncounterRuleActive(), TRUE);
 }
 
 TEST("Fork rules track one encounter per named area")
@@ -212,6 +246,24 @@ TEST("Fork rules can resolve a wild encounter after battle setup creates the opp
     EXPECT_EQ(ForkShouldShowFirstEncounterIndicator(), FALSE);
     EXPECT_EQ(ForkShouldRejectSelectedBall(ITEM_POKE_BALL), TRUE);
     EXPECT_EQ(ForkShouldRejectSelectedBall(ITEM_POTION), FALSE);
+}
+
+TEST("Fork rules prepare an encounter before creating its wild Pokémon")
+{
+    ZeroEnemyPartyMons();
+    ZeroPlayerPartyMons();
+    ResetPokemonStorageSystem();
+    ResetPokedex();
+    ForkResetAreaEncounterState();
+    ForkInvalidateOwnedFamilyCache();
+    FlagSet(FLAG_ADVENTURE_STARTED);
+    gSaveBlock1Ptr->location.mapGroup = MAP_GROUP(MAP_ROUTE101);
+    gSaveBlock1Ptr->location.mapNum = MAP_NUM(MAP_ROUTE101);
+
+    CreateWildMon(SPECIES_ABRA, 3);
+    ForkFinalizeWildEncounter();
+
+    EXPECT_EQ(ForkIsAreaEncounterSpent(MAPSEC_ROUTE_101), TRUE);
 }
 
 TEST("Fork rules prefer the first-encounter indicator over the caught icon tile")

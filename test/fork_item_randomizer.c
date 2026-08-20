@@ -49,6 +49,31 @@ TEST("Fork item randomizer varies by source")
     EXPECT_NE(ResolveForkRandomizedItem(ITEM_POTION, 11), ResolveForkRandomizedItem(ITEM_POTION, 12));
 }
 
+TEST("Fork Game Corner catalog reserves five unassigned randomized items")
+{
+    enum Item prizes[FORK_GAME_CORNER_PRIZE_COUNT];
+
+    gSaveBlock3Ptr->forkItemRandomizerSeed = 54322;
+    ResetForkItemRandomizerState();
+    InitForkGameCornerPrizeCatalog();
+
+    for (u32 i = 0; i < ARRAY_COUNT(prizes); i++)
+    {
+        prizes[i] = GetForkGameCornerPrizeItem(i);
+        EXPECT_NE(prizes[i], ITEM_NONE);
+        for (u32 j = 0; j < i; j++)
+            EXPECT_NE(prizes[i], prizes[j]);
+    }
+
+    for (u16 sourceId = 0; sourceId < FORK_ITEM_RANDOMIZER_SOURCE_COUNT; sourceId++)
+    {
+        enum Item item = ResolveForkRandomizedItem(ITEM_POTION, sourceId);
+
+        for (u32 prizeIndex = 0; prizeIndex < ARRAY_COUNT(prizes); prizeIndex++)
+            EXPECT_NE(item, prizes[prizeIndex]);
+    }
+}
+
 TEST("Fork item randomizer hidden items are stable by hidden-item flag")
 {
     enum Item item1;
@@ -75,6 +100,67 @@ TEST("Fork hidden item randomization is consumed only once")
     EXPECT_EQ(ConsumeForkHiddenItemRandomizationGuard(), FALSE);
 }
 
+TEST("Fork hidden items use repeatable ball and treasure rewards")
+{
+    enum Item firstVisibleItem;
+    enum Item repeatedVisibleItem;
+    enum Item hiddenItems[32];
+    bool32 foundDuplicate = FALSE;
+
+    gSaveBlock3Ptr->forkItemRandomizerSeed = 24681;
+    ResetForkItemRandomizerState();
+    firstVisibleItem = ResolveForkRandomizedItem(ITEM_POTION, 1);
+
+    for (u16 i = 0; i < ARRAY_COUNT(hiddenItems); i++)
+    {
+        bool32 allowed = FALSE;
+
+        hiddenItems[i] = ResolveForkRandomizedHiddenItem(ITEM_POTION, FLAG_HIDDEN_ITEMS_START + i);
+        switch (hiddenItems[i])
+        {
+        case ITEM_POKE_BALL:
+        case ITEM_GREAT_BALL:
+        case ITEM_ULTRA_BALL:
+        case ITEM_PREMIER_BALL:
+        case ITEM_HEAL_BALL:
+        case ITEM_NET_BALL:
+        case ITEM_NEST_BALL:
+        case ITEM_DIVE_BALL:
+        case ITEM_DUSK_BALL:
+        case ITEM_TIMER_BALL:
+        case ITEM_QUICK_BALL:
+        case ITEM_REPEAT_BALL:
+        case ITEM_LUXURY_BALL:
+        case ITEM_TINY_MUSHROOM:
+        case ITEM_BIG_MUSHROOM:
+        case ITEM_NUGGET:
+        case ITEM_BIG_NUGGET:
+        case ITEM_BALM_MUSHROOM:
+        case ITEM_PEARL:
+        case ITEM_BIG_PEARL:
+        case ITEM_PEARL_STRING:
+        case ITEM_STARDUST:
+        case ITEM_STAR_PIECE:
+        case ITEM_COMET_SHARD:
+        case ITEM_RARE_BONE:
+            allowed = TRUE;
+            break;
+        default:
+            break;
+        }
+        EXPECT(allowed);
+        for (u16 j = 0; j < i; j++)
+        {
+            if (hiddenItems[i] == hiddenItems[j])
+                foundDuplicate = TRUE;
+        }
+    }
+
+    repeatedVisibleItem = ResolveForkRandomizedItem(ITEM_POTION, 1);
+    EXPECT(foundDuplicate);
+    EXPECT_EQ(firstVisibleItem, repeatedVisibleItem);
+}
+
 TEST("Fork item randomizer randomizes Brendans room hidden-item test source")
 {
     enum Item item1;
@@ -99,6 +185,16 @@ TEST("Fork item randomizer scripted poke balls stay vanilla")
     EXPECT_EQ(ResolveForkRandomizedScriptItem(ITEM_POKE_BALL, sFakeScript), ITEM_POKE_BALL);
 }
 
+TEST("Fork item randomizer leaves ordinary scripted rewards vanilla")
+{
+    static const u8 sFakeScript[] = {0x00};
+
+    gSaveBlock3Ptr->forkItemRandomizerSeed = 11112;
+    ResetForkItemRandomizerState();
+
+    EXPECT_EQ(ResolveForkRandomizedScriptItem(ITEM_POTION, sFakeScript), ITEM_POTION);
+}
+
 TEST("Fork item randomizer does not duplicate early source assignments")
 {
     enum Item items[8];
@@ -114,6 +210,17 @@ TEST("Fork item randomizer does not duplicate early source assignments")
         for (u32 j = i + 1; j < ARRAY_COUNT(items); j++)
             EXPECT_NE(items[i], items[j]);
     }
+}
+
+TEST("Fork item randomizer leaves later sources vanilla after the unique pool is exhausted")
+{
+    gSaveBlock3Ptr->forkItemRandomizerSeed = 22223;
+    ResetForkItemRandomizerState();
+
+    for (u16 sourceId = 0; sourceId < FORK_ITEM_RANDOMIZER_POOL_COUNT; sourceId++)
+        ResolveForkRandomizedItem(ITEM_POTION, sourceId);
+
+    EXPECT_EQ(ResolveForkRandomizedItem(ITEM_POTION, FORK_ITEM_RANDOMIZER_POOL_COUNT), ITEM_POTION);
 }
 
 TEST("Fork item randomizer protects hidden progression items")
@@ -189,6 +296,24 @@ TEST("Fork item randomizer does not yield placeholder TMs")
         if (GetItemPocket(item) == POCKET_TM_HM)
             EXPECT_NE(GetItemTMHMMoveId(item), MOVE_NONE);
     }
+}
+
+TEST("Fork item randomizer includes every randomized TM")
+{
+    u16 randomizedTMCount = 0;
+
+    gSaveBlock3Ptr->forkItemRandomizerSeed = 77778;
+    ResetForkItemRandomizerState();
+
+    for (u16 sourceId = 0; sourceId < FORK_ITEM_RANDOMIZER_POOL_COUNT; sourceId++)
+    {
+        enum Item item = ResolveForkRandomizedItem(ITEM_POTION, sourceId);
+
+        if ((item >= ITEM_TM51 && item <= ITEM_TM100)
+         || (item >= ITEM_TM101 && item <= ITEM_TM130))
+            randomizedTMCount++;
+    }
+    EXPECT_EQ(randomizedTMCount, 80);
 }
 
 TEST("Fork item randomizer does not yield Plates or Incenses")

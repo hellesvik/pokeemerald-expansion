@@ -9,6 +9,7 @@
 #include "constants/berries.h"
 #include "constants/item_effects.h"
 #include "constants/hold_effects.h"
+#include "fork_tm_randomizer.h"
 
 /* Each of these TM_HM enums corresponds an index in the list of TMs + HMs item ids in
  * gTMHMItemMoveIds. The index for an item can be retrieved with GetItemTMHMIndex below.
@@ -16,9 +17,11 @@
 #define UNPACK_TM_HM_ENUM(_tmHm) CAT(ENUM_TM_HM_, _tmHm),
 enum TMHMIndex
 {
-    FOREACH_TMHM(UNPACK_TM_HM_ENUM)
+    FOREACH_TM(UNPACK_TM_HM_ENUM)
+    FOREACH_FORK_RANDOM_TM(UNPACK_TM_HM_ENUM)
+    FOREACH_HM(UNPACK_TM_HM_ENUM)
     NUM_ALL_MACHINES,
-    NUM_TECHNICAL_MACHINES = (0 FOREACH_TM(PLUS_ONE)),
+    NUM_TECHNICAL_MACHINES = (0 FOREACH_TM(PLUS_ONE) FOREACH_FORK_RANDOM_TM(PLUS_ONE)),
     NUM_HIDDEN_MACHINES = (0 FOREACH_HM(PLUS_ONE)),
 };
 #undef UNPACK_TM_HM_ENUM
@@ -108,6 +111,7 @@ extern struct BagPocket gBagPockets[];
 extern const struct TmHmIndexKey gTMHMItemMoveIds[];
 
 #define UNPACK_ITEM_TO_TM_INDEX(_tm) case CAT(ITEM_TM_, _tm): return CAT(ENUM_TM_HM_, _tm) + 1;
+#define UNPACK_FORK_RANDOM_TM_INDEX(_tm) case CAT(ITEM_TM, _tm): return _tm;
 #define UNPACK_ITEM_TO_HM_INDEX(_hm) case CAT(ITEM_HM_, _hm): return CAT(ENUM_TM_HM_, _hm) + 1;
 #define UNPACK_ITEM_TO_TM_MOVE_ID(_tm) case CAT(ITEM_TM_, _tm): return CAT(MOVE_, _tm);
 #define UNPACK_ITEM_TO_HM_MOVE_ID(_hm) case CAT(ITEM_HM_, _hm): return CAT(MOVE_, _hm);
@@ -125,6 +129,7 @@ static inline enum TMHMIndex GetItemTMHMIndex(enum Item item)
         *      return 2;
         * etc */
     FOREACH_TM(UNPACK_ITEM_TO_TM_INDEX)
+    FOREACH_FORK_RANDOM_TM(UNPACK_FORK_RANDOM_TM_INDEX)
     FOREACH_HM(UNPACK_ITEM_TO_HM_INDEX)
     default:
         return 0;
@@ -133,6 +138,10 @@ static inline enum TMHMIndex GetItemTMHMIndex(enum Item item)
 
 static inline enum Move GetItemTMHMMoveId(enum Item item)
 {
+    enum Move forkRandomizedMove = GetForkRandomizedTMMove(item);
+    if (forkRandomizedMove != MOVE_NONE)
+        return forkRandomizedMove;
+
     switch (item)
     {
     /* Expands to:
@@ -161,11 +170,12 @@ static inline enum Item GetTMHMItemIdFromMoveId(enum Move move)
     FOREACH_TM(UNPACK_TM_MOVE_TO_ITEM_ID)
     FOREACH_HM(UNPACK_HM_MOVE_TO_ITEM_ID)
     default:
-        return ITEM_NONE;
+        return GetForkRandomizedTMItemFromMoveId(move);
     }
 }
 
 #undef UNPACK_ITEM_TO_TM_INDEX
+#undef UNPACK_FORK_RANDOM_TM_INDEX
 #undef UNPACK_ITEM_TO_HM_INDEX
 #undef UNPACK_ITEM_TO_TM_MOVE_ID
 #undef UNPACK_ITEM_TO_HM_MOVE_ID
@@ -174,11 +184,15 @@ static inline enum Item GetTMHMItemIdFromMoveId(enum Move move)
 
 static inline enum Item GetTMHMItemId(enum TMHMIndex index)
 {
+    if (index >= 51 && index <= 130)
+        return GetForkRandomizedTMItem(index);
     return gTMHMItemMoveIds[index].itemId;
 }
 
 static inline enum Move GetTMHMMoveId(enum TMHMIndex index)
 {
+    if (index >= 51 && index <= 130)
+        return GetForkRandomizedTMMove(GetForkRandomizedTMItem(index));
     return gTMHMItemMoveIds[index].moveId;
 }
 

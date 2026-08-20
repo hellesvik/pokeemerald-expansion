@@ -2,15 +2,22 @@
 #include "item_ball.h"
 #include "event_data.h"
 #include "item.h"
+#include "malloc.h"
 #include "new_game.h"
 #include "random.h"
+#include "script_menu.h"
 #include "string_util.h"
+#include "strings.h"
+#include "fork_tm_randomizer.h"
 #include "constants/event_objects.h"
+#include "constants/flags.h"
 #include "constants/items.h"
 
 #define FIRST_HM_ITEM ITEM_HM01
 #define LAST_HM_ITEM ITEM_HM08
-#define FORK_ITEM_RANDOMIZER_VERSION 3
+#define FORK_ITEM_RANDOMIZER_VERSION 7
+#define FIRST_ITEM_BALL_FLAG FLAG_ITEM_ROUTE_102_POTION
+#define LAST_ITEM_BALL_FLAG FLAG_ITEM_SAFARI_ZONE_SOUTH_EAST_BIG_PEARL
 
 static bool8 sForkItemBallRandomizationPending;
 static bool8 sForkHiddenItemRandomizationPending;
@@ -330,13 +337,44 @@ static const enum Item sForkRandomizedItemPool[] =
     ITEM_TM48,
     ITEM_TM49,
     ITEM_TM50,
+#define ADD_FORK_RANDOM_TM_TO_POOL(number) ITEM_TM##number,
+    FOREACH_FORK_RANDOM_TM(ADD_FORK_RANDOM_TM_TO_POOL)
+#undef ADD_FORK_RANDOM_TM_TO_POOL
+};
+
+static const enum Item sForkRandomizedHiddenItemPool[] =
+{
+    ITEM_POKE_BALL,
+    ITEM_GREAT_BALL,
+    ITEM_ULTRA_BALL,
+    ITEM_PREMIER_BALL,
+    ITEM_HEAL_BALL,
+    ITEM_NET_BALL,
+    ITEM_NEST_BALL,
+    ITEM_DIVE_BALL,
+    ITEM_DUSK_BALL,
+    ITEM_TIMER_BALL,
+    ITEM_QUICK_BALL,
+    ITEM_REPEAT_BALL,
+    ITEM_LUXURY_BALL,
+    ITEM_TINY_MUSHROOM,
+    ITEM_BIG_MUSHROOM,
+    ITEM_NUGGET,
+    ITEM_BIG_NUGGET,
+    ITEM_BALM_MUSHROOM,
+    ITEM_PEARL,
+    ITEM_BIG_PEARL,
+    ITEM_PEARL_STRING,
+    ITEM_STARDUST,
+    ITEM_STAR_PIECE,
+    ITEM_COMET_SHARD,
+    ITEM_RARE_BONE,
 };
 
 STATIC_ASSERT(ARRAY_COUNT(sForkRandomizedItemPool) == FORK_ITEM_RANDOMIZER_POOL_COUNT, ForkItemRandomizerPoolSizeMismatch);
 
 static u32 GetItemBallAmountFromTemplate(u32);
 static u32 GetItemBallIdFromTemplate(u32);
-static bool32 IsForkProtectedItemBallSource(u16 sourceId);
 static void EnsureForkItemRandomizerInitialized(void);
 static u16 GetNextUnclaimedPoolIndex(u16 sourceId);
 static u16 GetStableUnclaimedPoolIndex(u16 sourceId);
@@ -358,17 +396,6 @@ static u32 GetItemBallIdFromTemplate(u32 itemBallId)
     enum Item itemId = gMapHeader.events->objectEvents[itemBallId].trainerRange_berryTreeId;
 
     return (itemId >= ITEMS_COUNT) ? (ITEM_NONE + 1) : itemId;
-}
-
-static bool32 IsForkProtectedItemBallSource(u16 sourceId)
-{
-    switch (sourceId)
-    {
-    case 26:
-        return TRUE;
-    default:
-        return FALSE;
-    }
 }
 
 static bool32 IsForkProtectedItem(enum Item itemId)
@@ -414,6 +441,9 @@ void ResetForkItemRandomizerState(void)
 
     for (u16 i = 0; i < FORK_ITEM_RANDOMIZER_SOURCE_COUNT; i++)
         gSaveBlock3Ptr->forkItemRandomizerSourceToPoolIndex[i] = FORK_ITEM_RANDOMIZER_UNASSIGNED;
+
+    for (u16 i = 0; i < FORK_GAME_CORNER_PRIZE_COUNT; i++)
+        gSaveBlock3Ptr->forkGameCornerPrizeItems[i] = ITEM_NONE;
 }
 
 static void EnsureForkItemRandomizerInitialized(void)
@@ -443,9 +473,7 @@ static u16 GetNextUnclaimedPoolIndex(u16 sourceId)
         }
     }
 
-    // Overflow rule: once the unique pool is exhausted, fall back to a deterministic
-    // repeated assignment based only on the stable source ID.
-    return sourceId % FORK_ITEM_RANDOMIZER_POOL_COUNT;
+    return FORK_ITEM_RANDOMIZER_UNASSIGNED;
 }
 
 static u16 GetStableUnclaimedPoolIndex(u16 sourceId)
@@ -466,14 +494,21 @@ static u16 GetStableUnclaimedPoolIndex(u16 sourceId)
     return GetNextUnclaimedPoolIndex(sourceId);
 }
 
+static u16 GetForkItemBallSourceId(u16 itemBallId)
+{
+    u16 flagId = gMapHeader.events->objectEvents[itemBallId].flagId;
+
+    if (flagId >= FIRST_ITEM_BALL_FLAG && flagId <= LAST_ITEM_BALL_FLAG)
+        return flagId - FIRST_ITEM_BALL_FLAG;
+    return FORK_ITEM_RANDOMIZER_SOURCE_COUNT - 1;
+}
+
 enum Item ResolveForkRandomizedItem(enum Item itemId, u16 sourceId)
 {
     u16 poolIndex;
 
     EnsureForkItemRandomizerInitialized();
     if (IsForkProtectedItem(itemId))
-        return itemId;
-    if (itemId == ITEM_POKE_BALL && IsForkProtectedItemBallSource(sourceId))
         return itemId;
     if (GetItemPocket(itemId) == POCKET_KEY_ITEMS)
         return itemId;
@@ -490,11 +525,65 @@ enum Item ResolveForkRandomizedItem(enum Item itemId, u16 sourceId)
     else
     {
         poolIndex = gSaveBlock3Ptr->forkItemRandomizerSourceToPoolIndex[sourceId];
-        if (poolIndex == FORK_ITEM_RANDOMIZER_UNASSIGNED || poolIndex >= ARRAY_COUNT(sForkRandomizedItemPool))
-            return itemId;
     }
 
+    if (poolIndex == FORK_ITEM_RANDOMIZER_UNASSIGNED || poolIndex >= ARRAY_COUNT(sForkRandomizedItemPool))
+        return itemId;
+
     return sForkRandomizedItemPool[poolIndex];
+}
+
+void InitForkGameCornerPrizeCatalog(void)
+{
+    EnsureForkItemRandomizerInitialized();
+
+    if (gSaveBlock3Ptr->forkGameCornerPrizeItems[0] != ITEM_NONE)
+        return;
+
+    for (u16 i = 0; i < FORK_GAME_CORNER_PRIZE_COUNT; i++)
+    {
+        u16 poolIndex = GetNextUnclaimedPoolIndex(FORK_ITEM_RANDOMIZER_SOURCE_COUNT + i);
+
+        gSaveBlock3Ptr->forkGameCornerPrizeItems[i] = (poolIndex == FORK_ITEM_RANDOMIZER_UNASSIGNED)
+            ? ITEM_NONE
+            : sForkRandomizedItemPool[poolIndex];
+    }
+}
+
+enum Item GetForkGameCornerPrizeItem(u16 index)
+{
+    InitForkGameCornerPrizeCatalog();
+    if (index >= FORK_GAME_CORNER_PRIZE_COUNT)
+        return ITEM_NONE;
+
+    return gSaveBlock3Ptr->forkGameCornerPrizeItems[index];
+}
+
+void ScrCmd_BuildForkGameCornerPrizeMenu(struct ScriptContext *ctx)
+{
+    (void)ctx;
+    InitForkGameCornerPrizeCatalog();
+
+    for (u16 i = 0; i < FORK_GAME_CORNER_PRIZE_COUNT; i++)
+    {
+        u8 *name = Alloc(40);
+        StringCopy(name, GetItemName(gSaveBlock3Ptr->forkGameCornerPrizeItems[i]));
+        StringAppend(name, COMPOUND_STRING("  4,000 COINS"));
+        MultichoiceDynamic_PushElement((struct ListMenuItem){ .name = name, .id = i });
+    }
+
+    {
+        u8 *name = Alloc(6);
+        StringCopy(name, gText_Exit);
+        MultichoiceDynamic_PushElement((struct ListMenuItem){ .name = name, .id = LIST_CANCEL });
+    }
+}
+
+void ScrCmd_GetForkGameCornerPrizeItem(struct ScriptContext *ctx)
+{
+    u16 destVar = ScriptReadHalfword(ctx);
+
+    VarSet(destVar, GetForkGameCornerPrizeItem(gSpecialVar_Result));
 }
 
 enum Item ResolveForkRandomizedItemBall(enum Item itemId, u16 sourceId)
@@ -526,76 +615,28 @@ void ClearForkItemBallRandomizationGuard(void)
 
 enum Item ResolveForkRandomizedHiddenItem(enum Item itemId, u16 hiddenItemFlag)
 {
-    u16 sourceId;
+    rng_value_t localRng;
 
     if (hiddenItemFlag < FLAG_HIDDEN_ITEMS_START)
         return itemId;
 
+    EnsureForkItemRandomizerInitialized();
+    if (IsForkProtectedItem(itemId) || GetItemPocket(itemId) == POCKET_KEY_ITEMS)
+        return itemId;
+
     sForkHiddenItemRandomizationPending = TRUE;
-    sourceId = 162 + (hiddenItemFlag - FLAG_HIDDEN_ITEMS_START);
-    return ResolveForkRandomizedItem(itemId, sourceId);
+    localRng = LocalRandomSeed(gSaveBlock3Ptr->forkItemRandomizerSeed ^ hiddenItemFlag ^ 0x48494444);
+    return sForkRandomizedHiddenItemPool[LocalRandom(&localRng) % ARRAY_COUNT(sForkRandomizedHiddenItemPool)];
 }
 
 enum Item ResolveForkRandomizedScriptItem(enum Item itemId, const u8 *scriptPtr)
 {
-    u16 sourceId;
-
-    if (scriptPtr == NULL)
-        return itemId;
-
-    switch (itemId)
-    {
-    case ITEM_BASEMENT_KEY:
-    case ITEM_DEVON_GOODS:
-    case ITEM_DEVON_SCOPE:
-    case ITEM_DOWSING_MACHINE:
-    case ITEM_GOOD_ROD:
-    case ITEM_GO_GOGGLES:
-    case ITEM_HM_CUT:
-    case ITEM_HM_FLY:
-    case ITEM_HM_SURF:
-    case ITEM_HM_STRENGTH:
-    case ITEM_HM_FLASH:
-    case ITEM_HM_ROCK_SMASH:
-    case ITEM_HM_WATERFALL:
-    case ITEM_HM_DIVE:
-    case ITEM_MACH_BIKE:
-    case ITEM_ACRO_BIKE:
-    case ITEM_METEORITE:
-    case ITEM_OLD_ROD:
-    case ITEM_POKE_BALL:
-    case ITEM_POWDER_JAR:
-    case ITEM_SCANNER:
-    case ITEM_SOOT_SACK:
-    case ITEM_SODA_POP:
-    case ITEM_STORAGE_KEY:
-    case ITEM_SUPER_ROD:
-    case ITEM_WAILMER_PAIL:
-    case ITEM_CHESTO_BERRY:
-    case ITEM_RAZZ_BERRY:
-    case ITEM_SPELON_BERRY:
-    case ITEM_PAMTRE_BERRY:
-    case ITEM_WATMEL_BERRY:
-    case ITEM_DURIN_BERRY:
-    case ITEM_BELUE_BERRY:
-    case ITEM_PECHA_BERRY:
-    case ITEM_FIGY_BERRY:
-    case ITEM_IAPAPA_BERRY:
-    case ITEM_ENIGMA_BERRY_E_READER:
-    case ITEM_LANSAT_BERRY:
-    case ITEM_STARF_BERRY:
-        return itemId;
-    default:
-        break;
-    }
-
-    sourceId = 274 + (((uintptr_t)scriptPtr >> 2) % 155);
-    return ResolveForkRandomizedItem(itemId, sourceId);
+    return itemId;
 }
 
 void GetItemBallIdAndAmountFromTemplate(void)
 {
     u32 itemBallId = (gSpecialVar_LastTalked - 1);
-    gSpecialVar_Result = ResolveForkRandomizedItemBall(GetItemBallIdFromTemplate(itemBallId), itemBallId);
+    gSpecialVar_Result = ResolveForkRandomizedItemBall(GetItemBallIdFromTemplate(itemBallId), GetForkItemBallSourceId(itemBallId));
     gSpecialVar_0x8009 = GetItemBallAmountFromTemplate(itemBallId);
 }
