@@ -117,6 +117,7 @@ Std_FindItem::
 	call EventScript_BufferPocketNameAndTryFanfare
 	call_if_eq VAR_0x8007, TRUE, EventScript_PickUpItem
 	call_if_eq VAR_0x8007, FALSE, EventScript_NoRoomToPickUpItem
+	callnative ClearForkItemBallRandomizationGuard
 	release
 	return
 

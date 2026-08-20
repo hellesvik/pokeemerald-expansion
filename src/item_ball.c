@@ -10,7 +10,10 @@
 
 #define FIRST_HM_ITEM ITEM_HM01
 #define LAST_HM_ITEM ITEM_HM08
-#define FORK_ITEM_RANDOMIZER_VERSION 2
+#define FORK_ITEM_RANDOMIZER_VERSION 3
+
+static bool8 sForkItemBallRandomizationPending;
+static bool8 sForkHiddenItemRandomizationPending;
 
 static const enum Item sForkRandomizedItemPool[] =
 {
@@ -165,16 +168,11 @@ static const enum Item sForkRandomizedItemPool[] =
     ITEM_DARK_MEMORY,
     ITEM_DNA_SPLICERS,
     ITEM_DOUSE_DRIVE,
-    ITEM_DRACO_PLATE,
     ITEM_DRAGON_MEMORY,
-    ITEM_DREAD_PLATE,
-    ITEM_EARTH_PLATE,
     ITEM_ELECTRIC_MEMORY,
     ITEM_FAIRY_MEMORY,
     ITEM_FIGHTING_MEMORY,
     ITEM_FIRE_MEMORY,
-    ITEM_FIST_PLATE,
-    ITEM_FLAME_PLATE,
     ITEM_FLYING_MEMORY,
     ITEM_GHOST_MEMORY,
     ITEM_GRACIDEA,
@@ -184,15 +182,9 @@ static const enum Item sForkRandomizedItemPool[] =
     ITEM_GROUND_MEMORY,
     ITEM_HEARTHFLAME_MASK,
     ITEM_ICE_MEMORY,
-    ITEM_ICICLE_PLATE,
-    ITEM_INSECT_PLATE,
-    ITEM_IRON_PLATE,
     ITEM_LUSTROUS_GLOBE,
     ITEM_LUSTROUS_ORB,
-    ITEM_MEADOW_PLATE,
-    ITEM_MIND_PLATE,
     ITEM_PINK_NECTAR,
-    ITEM_PIXIE_PLATE,
     ITEM_POISON_MEMORY,
     ITEM_PRISON_BOTTLE,
     ITEM_PSYCHIC_MEMORY,
@@ -206,16 +198,11 @@ static const enum Item sForkRandomizedItemPool[] =
     ITEM_RUSTED_SHIELD,
     ITEM_RUSTED_SWORD,
     ITEM_SHOCK_DRIVE,
-    ITEM_SKY_PLATE,
     ITEM_SOUL_DEW,
-    ITEM_SPLASH_PLATE,
-    ITEM_SPOOKY_PLATE,
     ITEM_STEEL_MEMORY,
-    ITEM_TOXIC_PLATE,
     ITEM_WATER_MEMORY,
     ITEM_WELLSPRING_MASK,
     ITEM_YELLOW_NECTAR,
-    ITEM_ZAP_PLATE,
     ITEM_ZYGARDE_CUBE,
     ITEM_ABSORB_BULB,
     ITEM_ADRENALINE_ORB,
@@ -246,18 +233,15 @@ static const enum Item sForkRandomizedItemPool[] =
     ITEM_FLAME_ORB,
     ITEM_FOCUS_BAND,
     ITEM_FOCUS_SASH,
-    ITEM_FULL_INCENSE,
     ITEM_GRASSY_SEED,
     ITEM_GRIP_CLAW,
     ITEM_HEAVY_DUTY_BOOTS,
     ITEM_IRON_BALL,
     ITEM_KINGS_ROCK,
-    ITEM_LAX_INCENSE,
     ITEM_LEFTOVERS,
     ITEM_LIFE_ORB,
     ITEM_LIGHT_BALL,
     ITEM_LOADED_DICE,
-    ITEM_LUCK_INCENSE,
     ITEM_MAGNET,
     ITEM_MENTAL_HERB,
     ITEM_MIRACLE_SEED,
@@ -266,22 +250,17 @@ static const enum Item sForkRandomizedItemPool[] =
     ITEM_MUSCLE_BAND,
     ITEM_MYSTIC_WATER,
     ITEM_NEVER_MELT_ICE,
-    ITEM_ODD_INCENSE,
     ITEM_POISON_BARB,
     ITEM_POWER_HERB,
     ITEM_PROTECTIVE_PADS,
     ITEM_PSYCHIC_SEED,
     ITEM_PUNCHING_GLOVE,
-    ITEM_PURE_INCENSE,
     ITEM_QUICK_CLAW,
     ITEM_RING_TARGET,
     ITEM_ROCKY_HELMET,
-    ITEM_ROCK_INCENSE,
     ITEM_ROOM_SERVICE,
-    ITEM_ROSE_INCENSE,
     ITEM_SAFETY_GOGGLES,
     ITEM_SCOPE_LENS,
-    ITEM_SEA_INCENSE,
     ITEM_SHARP_BEAK,
     ITEM_SHELL_BELL,
     ITEM_SILK_SCARF,
@@ -296,7 +275,6 @@ static const enum Item sForkRandomizedItemPool[] =
     ITEM_TOXIC_ORB,
     ITEM_TWISTED_SPOON,
     ITEM_UTILITY_UMBRELLA,
-    ITEM_WAVE_INCENSE,
     ITEM_WEAKNESS_POLICY,
     ITEM_WHITE_HERB,
     ITEM_WIDE_LENS,
@@ -353,6 +331,8 @@ static const enum Item sForkRandomizedItemPool[] =
     ITEM_TM49,
     ITEM_TM50,
 };
+
+STATIC_ASSERT(ARRAY_COUNT(sForkRandomizedItemPool) == FORK_ITEM_RANDOMIZER_POOL_COUNT, ForkItemRandomizerPoolSizeMismatch);
 
 static u32 GetItemBallAmountFromTemplate(u32);
 static u32 GetItemBallIdFromTemplate(u32);
@@ -425,6 +405,8 @@ static void SetForkBit(u8 *bits, u16 index)
 
 void ResetForkItemRandomizerState(void)
 {
+    sForkItemBallRandomizationPending = FALSE;
+    sForkHiddenItemRandomizationPending = FALSE;
     gSaveBlock3Ptr->forkItemRandomizerVersion = FORK_ITEM_RANDOMIZER_VERSION;
     gSaveBlock3Ptr->forkItemRandomizerNextScan = 0;
     memset(gSaveBlock3Ptr->forkItemRandomizerSourceAssigned, 0, sizeof(gSaveBlock3Ptr->forkItemRandomizerSourceAssigned));
@@ -470,7 +452,6 @@ static u16 GetStableUnclaimedPoolIndex(u16 sourceId)
 {
     rng_value_t localRng = LocalRandomSeed(gSaveBlock3Ptr->forkItemRandomizerSeed ^ sourceId);
     u16 candidate = LocalRandom(&localRng) % FORK_ITEM_RANDOMIZER_POOL_COUNT;
-    u16 step = (LocalRandom(&localRng) % (FORK_ITEM_RANDOMIZER_POOL_COUNT - 1)) + 1;
 
     for (u16 attempt = 0; attempt < FORK_ITEM_RANDOMIZER_POOL_COUNT; attempt++)
     {
@@ -479,7 +460,7 @@ static u16 GetStableUnclaimedPoolIndex(u16 sourceId)
             SetForkBit(gSaveBlock3Ptr->forkItemRandomizerPoolClaimed, candidate);
             return candidate;
         }
-        candidate = (candidate + step) % FORK_ITEM_RANDOMIZER_POOL_COUNT;
+        candidate = (candidate + 1) % FORK_ITEM_RANDOMIZER_POOL_COUNT;
     }
 
     return GetNextUnclaimedPoolIndex(sourceId);
@@ -516,6 +497,33 @@ enum Item ResolveForkRandomizedItem(enum Item itemId, u16 sourceId)
     return sForkRandomizedItemPool[poolIndex];
 }
 
+enum Item ResolveForkRandomizedItemBall(enum Item itemId, u16 sourceId)
+{
+    sForkItemBallRandomizationPending = TRUE;
+    return ResolveForkRandomizedItem(itemId, sourceId);
+}
+
+bool8 ConsumeForkItemBallRandomizationGuard(void)
+{
+    bool8 pending = sForkItemBallRandomizationPending;
+
+    sForkItemBallRandomizationPending = FALSE;
+    return pending;
+}
+
+bool8 ConsumeForkHiddenItemRandomizationGuard(void)
+{
+    bool8 pending = sForkHiddenItemRandomizationPending;
+
+    sForkHiddenItemRandomizationPending = FALSE;
+    return pending;
+}
+
+void ClearForkItemBallRandomizationGuard(void)
+{
+    sForkItemBallRandomizationPending = FALSE;
+}
+
 enum Item ResolveForkRandomizedHiddenItem(enum Item itemId, u16 hiddenItemFlag)
 {
     u16 sourceId;
@@ -523,6 +531,7 @@ enum Item ResolveForkRandomizedHiddenItem(enum Item itemId, u16 hiddenItemFlag)
     if (hiddenItemFlag < FLAG_HIDDEN_ITEMS_START)
         return itemId;
 
+    sForkHiddenItemRandomizationPending = TRUE;
     sourceId = 162 + (hiddenItemFlag - FLAG_HIDDEN_ITEMS_START);
     return ResolveForkRandomizedItem(itemId, sourceId);
 }
@@ -587,6 +596,6 @@ enum Item ResolveForkRandomizedScriptItem(enum Item itemId, const u8 *scriptPtr)
 void GetItemBallIdAndAmountFromTemplate(void)
 {
     u32 itemBallId = (gSpecialVar_LastTalked - 1);
-    gSpecialVar_Result = ResolveForkRandomizedItem(GetItemBallIdFromTemplate(itemBallId), itemBallId);
+    gSpecialVar_Result = ResolveForkRandomizedItemBall(GetItemBallIdFromTemplate(itemBallId), itemBallId);
     gSpecialVar_0x8009 = GetItemBallAmountFromTemplate(itemBallId);
 }

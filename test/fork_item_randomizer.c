@@ -28,6 +28,19 @@ TEST("Fork item randomizer is stable per source and seed")
     EXPECT_EQ(item1, item2);
 }
 
+TEST("Fork item ball randomization is consumed only once")
+{
+    enum Item displayedItem;
+
+    gSaveBlock3Ptr->forkItemRandomizerSeed = 54321;
+    ResetForkItemRandomizerState();
+    displayedItem = ResolveForkRandomizedItemBall(ITEM_POTION, 11);
+
+    EXPECT_EQ(displayedItem, ResolveForkRandomizedItem(ITEM_POTION, 11));
+    EXPECT_EQ(ConsumeForkItemBallRandomizationGuard(), TRUE);
+    EXPECT_EQ(ConsumeForkItemBallRandomizationGuard(), FALSE);
+}
+
 TEST("Fork item randomizer varies by source")
 {
     gSaveBlock3Ptr->forkItemRandomizerSeed = 54321;
@@ -47,6 +60,33 @@ TEST("Fork item randomizer hidden items are stable by hidden-item flag")
     item2 = ResolveForkRandomizedHiddenItem(ITEM_POTION, FLAG_HIDDEN_ITEMS_START + 3);
 
     EXPECT_EQ(item1, item2);
+}
+
+TEST("Fork hidden item randomization is consumed only once")
+{
+    enum Item displayedItem;
+
+    gSaveBlock3Ptr->forkItemRandomizerSeed = 24680;
+    ResetForkItemRandomizerState();
+    displayedItem = ResolveForkRandomizedHiddenItem(ITEM_POTION, FLAG_HIDDEN_ITEMS_START + 4);
+
+    EXPECT_EQ(displayedItem, ResolveForkRandomizedHiddenItem(ITEM_POTION, FLAG_HIDDEN_ITEMS_START + 4));
+    EXPECT_EQ(ConsumeForkHiddenItemRandomizationGuard(), TRUE);
+    EXPECT_EQ(ConsumeForkHiddenItemRandomizationGuard(), FALSE);
+}
+
+TEST("Fork item randomizer randomizes Brendans room hidden-item test source")
+{
+    enum Item item1;
+    enum Item item2;
+
+    gSaveBlock3Ptr->forkItemRandomizerSeed = 13579;
+    ResetForkItemRandomizerState();
+    item1 = ResolveForkRandomizedHiddenItem(ITEM_POTION, FLAG_HIDDEN_ITEM_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F_TEST);
+    item2 = ResolveForkRandomizedHiddenItem(ITEM_POTION, FLAG_HIDDEN_ITEM_LITTLEROOT_TOWN_BRENDANS_HOUSE_2F_TEST);
+
+    EXPECT_EQ(item1, item2);
+    EXPECT_NE(item1, ITEM_POTION);
 }
 
 TEST("Fork item randomizer scripted poke balls stay vanilla")
@@ -148,5 +188,18 @@ TEST("Fork item randomizer does not yield placeholder TMs")
         enum Item item = ResolveForkRandomizedItem(ITEM_POTION, sourceId);
         if (GetItemPocket(item) == POCKET_TM_HM)
             EXPECT_NE(GetItemTMHMMoveId(item), MOVE_NONE);
+    }
+}
+
+TEST("Fork item randomizer does not yield Plates or Incenses")
+{
+    gSaveBlock3Ptr->forkItemRandomizerSeed = 88888;
+    ResetForkItemRandomizerState();
+
+    for (u16 sourceId = 0; sourceId < FORK_ITEM_RANDOMIZER_SOURCE_COUNT; sourceId++)
+    {
+        enum Item item = ResolveForkRandomizedItem(ITEM_POTION, sourceId);
+        EXPECT_NE(gItemsInfo[item].sortType, ITEM_TYPE_PLATE);
+        EXPECT_NE(gItemsInfo[item].sortType, ITEM_TYPE_INCENSE);
     }
 }

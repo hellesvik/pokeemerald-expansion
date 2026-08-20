@@ -630,7 +630,7 @@ bool8 ScrCmd_additem(struct ScriptContext *ctx)
 
     Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
 
-    if (!IS_FRLG && scriptPtr != EventScript_HiddenItemScript)
+    if (!IS_FRLG && !ConsumeForkItemBallRandomizationGuard() && !ConsumeForkHiddenItemRandomizationGuard())
         itemId = ResolveForkRandomizedScriptItem(itemId, scriptPtr);
 
     gSpecialVar_Result = AddBagItem(itemId, quantity);
