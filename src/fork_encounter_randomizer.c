@@ -92,6 +92,36 @@ static bool8 IsAlreadySelected(enum Species species, const enum Species *selecte
     return FALSE;
 }
 
+u16 GetForkMaxNationalDex(void)
+{
+    switch (FORK_MAX_GEN_MONS)
+    {
+    case GEN_1:
+        return NATIONAL_DEX_MEW;
+    case GEN_2:
+        return NATIONAL_DEX_CELEBI;
+    case GEN_3:
+        return NATIONAL_DEX_DEOXYS;
+    case GEN_4:
+        return NATIONAL_DEX_ARCEUS;
+    case GEN_5:
+        return NATIONAL_DEX_GENESECT;
+    case GEN_6:
+        return NATIONAL_DEX_VOLCANION;
+    case GEN_7:
+        return NATIONAL_DEX_MELMETAL;
+    case GEN_8:
+        return NATIONAL_DEX_ENAMORUS;
+    default:
+        return NATIONAL_DEX_PECHARUNT;
+    }
+}
+
+static bool8 IsWithinForkMaxGeneration(enum Species species)
+{
+    return gSpeciesInfo[species].natDexNum <= GetForkMaxNationalDex();
+}
+
 static enum Species SelectEncounterSpecies(const struct ForkEncounterAssignment *assignment, u8 mapGroup, u8 mapNum, enum WildPokemonArea area, u8 slot, const enum Species *selected, u8 selectedCount, enum Species fallback)
 {
     const enum Species *pool;
@@ -106,7 +136,8 @@ static enum Species SelectEncounterSpecies(const struct ForkEncounterAssignment 
     for (i = 0; i < count; i++)
     {
         enum Species species = pool[(start + i) % count];
-        if (GetSpeciesBst(species) <= assignment->maxBst
+        if (IsWithinForkMaxGeneration(species)
+         && GetSpeciesBst(species) <= assignment->maxBst
          && IsMethodCompatible(species, area)
          && !IsAlreadySelected(species, selected, selectedCount))
             return species;

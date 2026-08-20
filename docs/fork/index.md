@@ -11,6 +11,7 @@ This folder contains the main gameplay-rule documentation for this fork.
 - [Item Randomizer Spec](./item_randomizer.md)
 - [TM Randomizer](./tm_randomizer.md)
 - [Biome Encounter Randomizer](./biome_encounter_randomizer.md)
+- [Gift Pokémon and Fossils](../../FORK.md#gift-pokémon-randomization)
 - [Biome Species Catalog — CSV](./biome_species_catalog.csv)
 - [Biome Encounter Assignments — CSV](./biome_encounter_assignments.csv)
 

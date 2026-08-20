@@ -83,6 +83,27 @@ Older saves are scrubbed so player-owned Pokemon in party, boxes, and daycare al
 The summary screen exposes raw IV values directly.
 This fork uses the existing summary-screen IV view rather than a fully custom page.
 
+## Gift Pokémon Randomization
+
+Professor Birch's three Route 101 starter choices are randomized from enabled,
+base-form Pokémon through `FORK_MAX_GEN_MONS` with a base-stat total no higher
+than 325. The three choices are distinct.
+
+Steven's postgame Mossdeep gift is randomized from the first stage of a
+pseudo-legendary line through the same generation limit. It is never a
+single-stage Pokémon.
+
+Castform, the Wynaut Egg, and Birch's post-upgrade Johto starter remain
+unchanged.
+
+## Fossils
+
+Fossils are excluded from the item randomizer. Mirage Tower instead presents
+two distinct, per-save randomized fossil choices, displaying each item name
+before the player chooses one. The Devon Corp researcher can revive Old Amber,
+Helix, Dome, Root, Claw, Armor, Skull, Cover, Plume, Jaw, and Sail Fossils into
+their matching Pokémon at level 20.
+
 ## Related Docs
 
 - [docs/tutorials/one_catch_per_area.md](docs/tutorials/one_catch_per_area.md)

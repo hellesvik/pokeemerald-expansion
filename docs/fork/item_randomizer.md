@@ -9,7 +9,7 @@ game RNG, Trainer ID, and daily seed. Item assignments are stored in `SaveBlock3
 so they remain stable after saving, reloading, and revisiting a source.
 
 Each eligible visible item ball is assigned an item from one shared pool. The
-pool contains 393 candidates, and replacements are unique until that pool is
+pool contains 378 candidates, and replacements are unique until that pool is
 exhausted. Any later visible item-ball sources retain their original item.
 
 Assignments are deterministic for a given save seed and source ID. They are not
@@ -58,18 +58,18 @@ buy.
 
 ## Replacement pool
 
-The pool contains 393 items. It consists of:
+The pool contains 378 items. It consists of:
 
 - Mega Stones.
-- Evolution items and fossils.
+- Evolution items.
 - Form- and species-specific items, such as Memories, Drives, Orbs, Masks, and
   Nectars.
 - Battle held items.
 - `ITEM_TM01` through `ITEM_TM130`.
 
-The pool deliberately excludes all Plates and Incenses. It also excludes HMs,
-Key Items, consumable medicine and ball items, vendor-value filler, Tera Orb,
-and Dynamax Band.
+The pool deliberately excludes all fossils, Plates, and Incenses. It also
+excludes HMs, Key Items, consumable medicine and ball items, vendor-value
+filler, Tera Orb, and Dynamax Band.
 
 ## Hidden-item pool
 
@@ -87,7 +87,7 @@ with that list.
 The saved state has a randomizer version. When this version changes, the game
 clears saved source assignments, pool claims, and the Game Corner catalog while
 retaining the save's seed. This safely regenerates the layout when the pool or
-assignment algorithm changes. The current implementation version is 7.
+assignment algorithm changes. The current implementation version is 8.
 
 ## Implementation and tests
 

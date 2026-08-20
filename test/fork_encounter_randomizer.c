@@ -67,3 +67,16 @@ TEST("Biome encounter randomizer avoids duplicate species within one land table"
         for (j = i + 1; j < ARRAY_COUNT(species); j++)
             EXPECT_NE(species[i], species[j]);
 }
+
+TEST("Biome encounter randomizer defaults to Generation 3 species")
+{
+    gSaveBlock3Ptr->forkEncounterRandomizerSeed = 0x10203040;
+
+    for (u8 slot = 0; slot < LAND_WILD_COUNT; slot++)
+    {
+        enum Species species = ResolveForkRandomizedEncounterSpecies(
+            MAP_GROUP(MAP_ROUTE101), MAP_NUM(MAP_ROUTE101), WILD_AREA_LAND, slot, SPECIES_ZIGZAGOON);
+
+        EXPECT_LE((u16)gSpeciesInfo[species].natDexNum, NATIONAL_DEX_DEOXYS);
+    }
+}

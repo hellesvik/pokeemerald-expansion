@@ -8,15 +8,20 @@
 
 ## Fork Changes
 
-This fork enforces a one-normal-encounter-per-named-area rule based on region map sections, with family-wide dupes clause checks and shiny exceptions.
-This fork blocks catching uncapturable wild encounters before a ball or Safari Ball is consumed, and it also blocks egg hatching in areas whose encounter has already been spent.
-This fork applies a soft nuzlocke whiteout penalty by permanently marking one random party Pokemon, dropping it to level 1, and preventing it from leveling again.
-This fork uses a hard story-battle level cap that advances through required gyms, rival fights, villain boss fights, the Elite Four, Champion Wallace, and then disappears after Steven.
-This fork bans battle item use in trainer battles, including healing items, X-items, revives, escape items, and balls.
-This fork adds reusable Infinite Rare Candy and Infinite Repel key items, and both are granted on new game and on continue if missing.
-This fork forces player-owned Pokemon to stay at 0 EVs, including newly obtained Pokemon and old saves loaded into the fork.
-This fork exposes raw IV values on the summary screen for easier stat checking.
-More detailed fork-specific behavior is documented in [FORK.md](FORK.md). The current remake notes source lives in [`ai-remake-summary.txt`](ai-remake-summary.txt).
+- One catch per named area, with a family-based dupes clause and shiny exceptions.
+- Catch and egg-hatch protection for areas whose normal encounter is already spent.
+- Soft-nuzlocke whiteout penalty: one party Pokémon is reduced to level 1 and cannot level again.
+- Story-progression level caps.
+- Trainer-battle item ban.
+- Infinite Rare Candy and Infinite Repel key items.
+- Player-owned Pokémon kept at 0 EVs, with raw IVs shown on the summary screen.
+- Item randomizer for visible and hidden pickups, including a reserved Mauville Game Corner catalog.
+- Randomized TM51–TM130 contents.
+- Biome-based wild encounter randomizer with per-area BST and maximum-generation caps.
+- Randomized Birch starters and Steven's postgame pseudo-legendary gift.
+- Fossils removed from item randomization, with randomized Mirage Tower fossil choices and universal Devon Corp revival.
+
+Details are in [FORK.md](FORK.md) and [the fork documentation](docs/fork/index.md). Remake notes are in [`ai-remake-summary.txt`](ai-remake-summary.txt).
 
 # [Features](FEATURES.md)
 

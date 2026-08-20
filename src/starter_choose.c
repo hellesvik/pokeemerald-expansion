@@ -3,6 +3,7 @@
 #include "data.h"
 #include "decompress.h"
 #include "event_data.h"
+#include "fork_gift_pokemon_randomizer.h"
 #include "gpu_regs.h"
 #include "international_string_util.h"
 #include "main.h"
@@ -110,16 +111,14 @@ static const u8 sStarterLabelCoords[STARTER_MON_COUNT][2] =
     {8, 4},
 };
 
-#define GRASS_STARTER (IS_FRLG ? SPECIES_BULBASAUR  : SPECIES_TREECKO)
-#define FIRE_STARTER  (IS_FRLG ? SPECIES_CHARMANDER : SPECIES_TORCHIC)
-#define WATER_STARTER (IS_FRLG ? SPECIES_SQUIRTLE   : SPECIES_MUDKIP )
-
+#if IS_FRLG
 static const u16 sStarterMon[STARTER_MON_COUNT] =
 {
-    GRASS_STARTER,
-    FIRE_STARTER,
-    WATER_STARTER,
+    SPECIES_BULBASAUR,
+    SPECIES_CHARMANDER,
+    SPECIES_SQUIRTLE,
 };
+#endif
 
 static const struct BgTemplate sBgTemplates[3] =
 {
@@ -349,9 +348,13 @@ static const struct SpriteTemplate sSpriteTemplate_StarterCircle =
 // .text
 u16 GetStarterPokemon(u16 chosenStarterId)
 {
-    if (chosenStarterId > STARTER_MON_COUNT)
+    if (chosenStarterId >= STARTER_MON_COUNT)
         chosenStarterId = 0;
+#if IS_FRLG
     return sStarterMon[chosenStarterId];
+#else
+    return GetForkRandomizedStarterSpecies(chosenStarterId);
+#endif
 }
 
 static void VblankCB_StarterChoose(void)
