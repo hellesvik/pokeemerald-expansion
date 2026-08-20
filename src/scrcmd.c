@@ -31,6 +31,7 @@
 #include "follower_npc.h"
 #include "gpu_regs.h"
 #include "item.h"
+#include "item_ball.h"
 #include "lilycove_lady.h"
 #include "main.h"
 #include "map_preview_screen.h"
@@ -625,8 +626,12 @@ bool8 ScrCmd_additem(struct ScriptContext *ctx)
 {
     enum Item itemId = VarGet(ScriptReadHalfword(ctx));
     u32 quantity = VarGet(ScriptReadHalfword(ctx));
+    const u8 *scriptPtr = ctx->scriptPtr;
 
     Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+
+    if (!IS_FRLG && scriptPtr != EventScript_HiddenItemScript)
+        itemId = ResolveForkRandomizedScriptItem(itemId, scriptPtr);
 
     gSpecialVar_Result = AddBagItem(itemId, quantity);
     return FALSE;

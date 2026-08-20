@@ -16,6 +16,7 @@
 #include "field_move.h"
 #include "field_effect.h"
 #include "field_player_avatar.h"
+#include "item_ball.h"
 #include "field_poison.h"
 #include "field_screen_effect.h"
 #include "fork_run.h"
@@ -458,7 +459,7 @@ static const u8 *GetInteractedBackgroundEventScript(struct MapPosition *position
         if (bgEvent->bgUnion.hiddenItem.underfoot == TRUE)
             return NULL;
         gSpecialVar_0x8004 = bgEvent->bgUnion.hiddenItem.hiddenItemId + FLAG_HIDDEN_ITEMS_START;
-        gSpecialVar_0x8005 = bgEvent->bgUnion.hiddenItem.item;
+        gSpecialVar_0x8005 = ResolveForkRandomizedHiddenItem(bgEvent->bgUnion.hiddenItem.item, gSpecialVar_0x8004);
         gSpecialVar_0x8009 = bgEvent->bgUnion.hiddenItem.quantity;
         if (FlagGet(gSpecialVar_0x8004) == TRUE)
             return NULL;

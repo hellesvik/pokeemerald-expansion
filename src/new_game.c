@@ -52,6 +52,7 @@
 #include "difficulty.h"
 #include "follower_npc.h"
 #include "fork_run.h"
+#include "item_ball.h"
 
 extern const u8 EventScript_ResetAllMapFlags[];
 extern const u8 EventScript_ResetAllMapFlagsFrlg[];
@@ -214,6 +215,7 @@ void NewGameInitData(void)
     ResetFanClub();
     ResetLotteryCorner();
     UpdateDailySeed();
+    InitForkItemRandomizerSeed();
     WarpToTruck();
     if (IS_FRLG)
         RunScriptImmediately(EventScript_ResetAllMapFlagsFrlg);

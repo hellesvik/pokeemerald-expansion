@@ -252,6 +252,11 @@ struct NPCFollower
 
 #include "constants/items.h"
 #define ITEM_FLAGS_COUNT ((ITEMS_COUNT / 8) + ((ITEMS_COUNT % 8) ? 1 : 0))
+#define FORK_ITEM_RANDOMIZER_SOURCE_COUNT 429
+#define FORK_ITEM_RANDOMIZER_POOL_COUNT 388
+#define FORK_ITEM_RANDOMIZER_SOURCE_BITSET_COUNT ((FORK_ITEM_RANDOMIZER_SOURCE_COUNT + 7) / 8)
+#define FORK_ITEM_RANDOMIZER_POOL_BITSET_COUNT ((FORK_ITEM_RANDOMIZER_POOL_COUNT + 7) / 8)
+#define FORK_ITEM_RANDOMIZER_UNASSIGNED 0xFFFF
 
 struct SaveBlock3
 {
@@ -271,6 +276,12 @@ struct SaveBlock3
 #if APRICORN_TREE_COUNT > 0
     u8 apricornTrees[NUM_APRICORN_TREE_BYTES];
 #endif
+    u32 forkItemRandomizerSeed;
+    u16 forkItemRandomizerVersion;
+    u16 forkItemRandomizerNextScan;
+    u16 forkItemRandomizerSourceToPoolIndex[FORK_ITEM_RANDOMIZER_SOURCE_COUNT];
+    u8 forkItemRandomizerSourceAssigned[FORK_ITEM_RANDOMIZER_SOURCE_BITSET_COUNT];
+    u8 forkItemRandomizerPoolClaimed[FORK_ITEM_RANDOMIZER_POOL_BITSET_COUNT];
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;
@@ -1126,6 +1137,7 @@ struct SaveBlock1
     /*0x9C8*/ u16 trainerRematchStepCounter;
     /*0x9CA*/ u8 trainerRematches[MAX_REMATCH_ENTRIES];
 #endif //FREE_MATCH_CALL
+              u32 forkItemRandomizerSeed;
     /*0xA2E*/ //u8 padding3[2];
     /*0xA30*/ struct ObjectEvent objectEvents[OBJECT_EVENTS_COUNT];
     /*0xC70*/ struct ObjectEventTemplate objectEventTemplates[OBJECT_EVENT_TEMPLATES_COUNT];
