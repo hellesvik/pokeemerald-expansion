@@ -96,6 +96,19 @@ single-stage Pokémon.
 Castform, the Wynaut Egg, and Birch's post-upgrade Johto starter remain
 unchanged.
 
+## Ability Randomization
+
+Each save randomizes one Ability for every eligible evolutionary family. The
+same Ability is used by every member of that family in wild battles, trainer
+battles, gifts, and the player's party. The Ability pool is drawn from the
+available non-Legendary, non-Mythical Pokémon through `FORK_MAX_GEN_MONS`.
+
+Castform remains fixed with Forecast, and Forecast cannot be given to other
+Pokémon. Form-mechanic Abilities and their families are excluded from this
+randomizer and retain their original Ability data. See
+[the ability randomizer documentation](docs/fork/ability_randomizer.md) for
+the full list.
+
 ## Fossils
 
 Fossils are excluded from the item randomizer. Mirage Tower instead presents

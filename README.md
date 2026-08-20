@@ -19,6 +19,7 @@
 - Randomized TM51–TM130 contents.
 - Biome-based wild encounter randomizer with per-area BST and maximum-generation caps.
 - Randomized Birch starters and Steven's postgame pseudo-legendary gift.
+- Per-save ability randomization by evolutionary family, with form-mechanic Pokémon preserved.
 - Fossils removed from item randomization, with randomized Mirage Tower fossil choices and universal Devon Corp revival.
 
 Details are in [FORK.md](FORK.md) and [the fork documentation](docs/fork/index.md). Remake notes are in [`ai-remake-summary.txt`](ai-remake-summary.txt).

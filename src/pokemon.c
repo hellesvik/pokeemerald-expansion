@@ -1,4 +1,5 @@
 #include "global.h"
+#include "fork_ability_randomizer.h"
 #include "malloc.h"
 #include "apprentice.h"
 #include "battle.h"
@@ -3133,6 +3134,12 @@ u8 GetMonsStateToDoubles_2(void)
 enum Ability GetAbilityBySpecies(enum Species species, u8 abilityNum)
 {
     int i;
+
+    if (IsForkAbilityRandomizedSpecies(species))
+    {
+        gLastUsedAbility = GetForkRandomizedAbility(species);
+        return gLastUsedAbility;
+    }
 
     if (abilityNum < NUM_ABILITY_SLOTS)
         gLastUsedAbility = GetSpeciesAbility(species, abilityNum);
