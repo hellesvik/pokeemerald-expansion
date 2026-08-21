@@ -1,9 +1,7 @@
 #include "global.h"
+#include "fork_gift_pokemon_randomizer.h"
 #include "pokemon.h"
 #include "test/test.h"
-
-enum Species GetForkRandomizedStarterSpecies(u8 slot);
-enum Species GetForkRandomizedStevenGiftSpecies(void);
 
 static bool8 IsPseudoLegendaryFirstStage(enum Species species)
 {
@@ -83,4 +81,66 @@ TEST("Steven's gift is a Generation-compatible pseudo-legendary first stage")
 
     EXPECT_LE((u16)gSpeciesInfo[species].natDexNum, NATIONAL_DEX_DEOXYS);
     EXPECT(IsPseudoLegendaryFirstStage(species));
+}
+
+TEST("Fork starter receives at least two perfect IVs")
+{
+    struct Pokemon mon;
+    u8 perfectIvs = 0;
+
+    gSaveBlock3Ptr->forkItemRandomizerSeed = 0x13572468;
+    CreateMon(&mon, SPECIES_TREECKO, 5, 0, OTID_STRUCT_PRESET(0));
+    ApplyForkStarterPerfectIvs(&mon, 0);
+
+    for (u8 stat = 0; stat < NUM_STATS; stat++)
+        if (GetMonData(&mon, MON_DATA_HP_IV + stat) == MAX_PER_STAT_IVS)
+            perfectIvs++;
+    EXPECT_GE(perfectIvs, 2);
+}
+
+TEST("Fork starter's other IVs can also roll perfect")
+{
+    struct Pokemon mon;
+    bool8 foundExtraPerfectIv = FALSE;
+
+    for (u32 seed = 1; seed <= 128; seed++)
+    {
+        u8 perfectIvs = 0;
+
+        gSaveBlock3Ptr->forkItemRandomizerSeed = seed;
+        CreateMon(&mon, SPECIES_TREECKO, 5, 0, OTID_STRUCT_PRESET(0));
+        ApplyForkStarterPerfectIvs(&mon, 0);
+        for (u8 stat = 0; stat < NUM_STATS; stat++)
+            if (GetMonData(&mon, MON_DATA_HP_IV + stat) == MAX_PER_STAT_IVS)
+                perfectIvs++;
+        if (perfectIvs > 2)
+            foundExtraPerfectIv = TRUE;
+    }
+
+    EXPECT(foundExtraPerfectIv);
+}
+
+TEST("Fork starter perfect IV stats vary between saves")
+{
+    struct Pokemon mon;
+    u8 firstPair = 0;
+    bool8 foundDifferentPair = FALSE;
+
+    for (u32 seed = 1; seed <= 32; seed++)
+    {
+        u8 pair = 0;
+
+        gSaveBlock3Ptr->forkItemRandomizerSeed = seed;
+        CreateMon(&mon, SPECIES_TREECKO, 5, 0, OTID_STRUCT_PRESET(0));
+        ApplyForkStarterPerfectIvs(&mon, 0);
+        for (u8 stat = 0; stat < NUM_STATS; stat++)
+            if (GetMonData(&mon, MON_DATA_HP_IV + stat) == MAX_PER_STAT_IVS)
+                pair |= 1 << stat;
+        if (seed == 1)
+            firstPair = pair;
+        else if (pair != firstPair)
+            foundDifferentPair = TRUE;
+    }
+
+    EXPECT(foundDifferentPair);
 }

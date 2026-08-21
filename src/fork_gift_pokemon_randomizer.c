@@ -5,6 +5,7 @@
 #include "random.h"
 
 #define FORK_STARTER_CHOICE_COUNT 3
+#define FORK_STARTER_IV_SALT 0x53544956
 
 static const enum Species sPseudoLegendaryFirstStages[] =
 {
@@ -108,4 +109,25 @@ enum Species GetForkRandomizedStarterSpecies(u8 slot)
 enum Species GetForkRandomizedStevenGiftSpecies(void)
 {
     return SelectRandomGiftSpecies(sPseudoLegendaryFirstStages, ARRAY_COUNT(sPseudoLegendaryFirstStages), 0x53544556, 0, SPECIES_BELDUM);
+}
+
+void ApplyForkStarterPerfectIvs(struct Pokemon *mon, u8 starterSlot)
+{
+    rng_value_t rng = LocalRandomSeed(gSaveBlock3Ptr->forkItemRandomizerSeed ^ FORK_STARTER_IV_SALT ^ starterSlot);
+    u8 firstPerfectStat = LocalRandom(&rng) % NUM_STATS;
+    u8 secondPerfectStat = LocalRandom(&rng) % (NUM_STATS - 1);
+    u8 iv;
+    u8 stat;
+
+    if (secondPerfectStat >= firstPerfectStat)
+        secondPerfectStat++;
+
+    for (stat = 0; stat < NUM_STATS; stat++)
+    {
+        iv = LocalRandom(&rng) % (MAX_PER_STAT_IVS + 1);
+        if (stat == firstPerfectStat || stat == secondPerfectStat)
+            iv = MAX_PER_STAT_IVS;
+        SetMonData(mon, MON_DATA_HP_IV + stat, &iv);
+    }
+    CalculateMonStats(mon);
 }

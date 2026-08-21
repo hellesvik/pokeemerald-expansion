@@ -11,6 +11,7 @@
 #include "event_data.h"
 #include "metatile_behavior.h"
 #include "field_player_avatar.h"
+#include "fork_gift_pokemon_randomizer.h"
 #include "fieldmap.h"
 #include "follower_npc.h"
 #include "random.h"
@@ -968,6 +969,7 @@ static void CB2_GiveStarter(void)
     *GetVarPointer(VAR_STARTER_MON) = gSpecialVar_Result;
     starterMon = GetStarterPokemon(gSpecialVar_Result);
     ScriptGiveMon(starterMon, 5, ITEM_NONE);
+    ApplyForkStarterPerfectIvs(&gParties[B_TRAINER_PLAYER][0], gSpecialVar_Result);
     ResetTasks();
     PlayBattleBGM();
     SetMainCallback2(CB2_StartFirstBattle);

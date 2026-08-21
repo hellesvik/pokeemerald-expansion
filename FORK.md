@@ -89,6 +89,10 @@ Professor Birch's three Route 101 starter choices are randomized from enabled,
 base-form Pokémon through `FORK_MAX_GEN_MONS` with a base-stat total no higher
 than 325. The three choices are distinct.
 
+The chosen Route 101 starter has two guaranteed perfect IVs. The other IVs are
+rolled normally and can also be perfect. The two guaranteed stats are chosen
+per save, so they can differ between playthroughs.
+
 Steven's postgame Mossdeep gift is randomized from the first stage of a
 pseudo-legendary line through the same generation limit. It is never a
 single-stage Pokémon.
