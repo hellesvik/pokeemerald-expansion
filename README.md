@@ -1,6 +1,6 @@
-# Emerald Nuzlite
+# Emerurd: Emerald with Nuzlite rules
 
-This is [pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion) with some changes, adding the Nuzlite mode.
+This is [pokeemerald-expansion](https://github.com/rh-hideout/pokeemerald-expansion) with some changes, adding the below features
 
 ## Fork Changes
 
