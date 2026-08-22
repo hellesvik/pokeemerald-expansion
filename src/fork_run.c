@@ -49,7 +49,9 @@ bool32 ForkPlayerOwnsSpeciesFamily(enum Species species);
 
 static mapsec_u8_t ForkGetCurrentMapSec(void)
 {
-    return CorrectSpecialMapSecId(GetCurrentRegionMapSectionId());
+    // Keep separate encounter areas distinct. CorrectSpecialMapSecId maps
+    // Petalburg Woods to Route 104 for region-map display purposes.
+    return GetCurrentRegionMapSectionId();
 }
 
 bool32 ForkIsAreaEncounterRuleActive(void)

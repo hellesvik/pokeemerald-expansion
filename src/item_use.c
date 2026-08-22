@@ -94,6 +94,7 @@ static const u8 sText_BootedUpHM[] = _("Booted up an HM.");
 static const u8 sText_TMHMContainedVar1[] = _("It contained\n{STR_VAR_1}.\pTeach {STR_VAR_1}\nto a POKéMON?");
 static const u8 sText_UsedVar2WildLured[] = _("{PLAYER} used the\n{STR_VAR_2}.\pWild POKéMON will be lured.{PAUSE_UNTIL_PRESS}");
 static const u8 sText_UsedVar2WildRepelled[] = _("{PLAYER} used the\n{STR_VAR_2}.\pWild POKéMON will be repelled.{PAUSE_UNTIL_PRESS}");
+static const u8 sText_Var2TurnedOn[] = _("{STR_VAR_2} was turned on.{PAUSE_UNTIL_PRESS}");
 static const u8 sText_Var2TurnedOff[] = _("{STR_VAR_2} was turned off.{PAUSE_UNTIL_PRESS}");
 static const u8 sText_PlayedPokeFluteCatchy[] = _("Played the POKé FLUTE.\pNow, that's a catchy tune!{PAUSE_UNTIL_PRESS}");
 static const u8 sText_PlayedPokeFlute[] = _("Played the POKé FLUTE.");
@@ -1027,7 +1028,7 @@ static void Task_UseRepel(u8 taskId)
             #if VAR_LAST_REPEL_LURE_USED != 0
                 VarSet(VAR_LAST_REPEL_LURE_USED, gSpecialVar_ItemId);
             #endif
-                StringExpandPlaceholders(gStringVar4, gText_PlayerUsedVar2);
+                StringExpandPlaceholders(gStringVar4, sText_Var2TurnedOn);
             }
             else
             {
