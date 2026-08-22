@@ -1,23 +1,33 @@
 # Fork Docs
 
-This folder contains the main gameplay-rule documentation for this fork.
+This folder contains the player-facing documentation for Emerurd's fork
+features. Start with the [fork overview](../../FORK.md), then choose a
+category below.
 
-## Main Docs
+## Gameplay rules
 
-- [Fork Rules Overview](../../FORK.md)
-- [One Catch Per Area](./one_catch_per_area.md)
-- [Level Limits](./level_limits.md)
-- [Original AI Summary Source](../../ai-remake-summary.txt)
-- [Item Randomizer Spec](./item_randomizer.md)
-- [TM Randomizer](./tm_randomizer.md)
-- [Biome Encounter Randomizer](./biome_encounter_randomizer.md)
-- [Ability Randomizer](./ability_randomizer.md)
-- [New-Game Feature Options](./new_game_options.md)
-- [Gift Pokémon and Fossils](../../FORK.md#gift-pokémon-randomization)
-- [Biome Species Catalog — CSV](./biome_species_catalog.csv)
-- [Biome Encounter Assignments — CSV](./biome_encounter_assignments.csv)
+- [Gameplay rules index](./gameplay/index.md)
+- [One Catch Per Area](./gameplay/one_catch_per_area.md)
+- [Level Limits](./gameplay/level_limits.md)
+- [Whiteout and faint penalties](./gameplay/whiteout_penalty.md)
+- [Battle items, key items, and EV/IV rules](./gameplay/player_rules.md)
 
-## Reference Data
+## Randomizers
 
-- [Biome-by-biome eligible species catalog](./biome_species_catalog.csv)
-- [Biome encounter map/method assignments](./biome_encounter_assignments.csv)
+- [Randomizer index](./randomizers/index.md)
+- [Item Randomizer](./randomizers/item_randomizer.md)
+- [TM Randomizer](./randomizers/tm_randomizer.md)
+- [Biome Encounter Randomizer](./randomizers/biome_encounter_randomizer.md)
+- [Ability Randomizer](./randomizers/ability_randomizer.md)
+- [Gift Pokémon and Fossils](./randomizers/gift_pokemon_and_fossils.md)
+
+## Configuration and reference data
+
+- [New-Game Feature Options](./configuration/new_game_options.md)
+- [Reference data index](./reference/index.md)
+- [Biome species catalog](./reference/biome_species_catalog.csv)
+- [Biome encounter assignments](./reference/biome_encounter_assignments.csv)
+
+The CSV files are generated/reviewable reference data, not hand-written
+player configuration. Their generation and source-of-truth notes are
+documented in the [reference index](./reference/index.md).

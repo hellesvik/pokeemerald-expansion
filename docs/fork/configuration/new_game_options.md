@@ -17,19 +17,30 @@ The first row controls the preset for the remaining rules:
 When Mode is NUZLITE, NORMAL, or NUZLOCKE, the other rows remain visible but
 are locked. Choose CUSTOM before changing them.
 
-### Mode Defaults
+### Complete preset matrix
 
-- **NUZLITE**: Catch limit ON; level cap ON; 1/WHITEOUT; battle items ON;
-  Infinite Rare Candy ON; Infinite Repel ON; Player EVs NORMAL; item and
-  encounter randomizers ON; max generation GEN 3; randomized abilities ON;
-  Mega Evolution ON.
-- **NUZLOCKE**: Catch limit ON; level cap ON; ON FAINT; battle items OFF;
-  Infinite Rare Candy ON; Infinite Repel ON; Player EVs NORMAL; item and
-  encounter randomizers ON; max generation GEN 3; randomized abilities ON;
-  Mega Evolution ON.
-- **NORMAL**: All optional fork rules and randomizers OFF, except Items in
-  Battle remains ON. Max generation is GEN 3. Mega Evolution is OFF.
-- **CUSTOM**: Rules start OFF, with max generation GEN 3, and can be edited.
+The following is the default state when each mode is selected. In `CUSTOM`,
+the values in the last column are the initial values before the player edits
+them. `ON` for Player EVs means normal EV gain is enabled.
+
+| Setting | NUZLITE | NUZLOCKE | NORMAL | CUSTOM initial |
+| --- | --- | --- | --- | --- |
+| Catch Limit | ON | ON | OFF | OFF |
+| Faint Rule | 1/WHITEOUT | ON FAINT | OFF | OFF |
+| Level Cap | ON | ON | OFF | OFF |
+| Items in Battle | ON | OFF | ON | ON |
+| Infinite Rare Candy | ON | ON | OFF | OFF |
+| Infinite Repel | ON | ON | OFF | OFF |
+| Player EVs | NORMAL | NORMAL | OFF | OFF |
+| Item Randomizer | ON | ON | OFF | OFF |
+| Random Encounters | ON | ON | OFF | OFF |
+| Randomizer Max Gen | GEN 3 | GEN 3 | GEN 3 | GEN 3 |
+| Random Abilities | ON | ON | OFF | OFF |
+| Mega Evolution | ON | ON | OFF | OFF |
+
+In NUZLITE, NUZLOCKE, and NORMAL, the rule rows are visible but locked. The
+maximum generation remains editable in every mode. Choose CUSTOM to edit the
+other rows independently.
 
 ## Catch Limit
 

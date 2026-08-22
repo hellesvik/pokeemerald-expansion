@@ -47,7 +47,7 @@ Each ordinary encounter table is assigned a biome. The initial biome set is:
 - Ocean
 
 The assignment is explicit map/method data in
-[`biome_encounter_assignments.csv`](./biome_encounter_assignments.csv). The
+[`biome_encounter_assignments.csv`](../reference/biome_encounter_assignments.csv). The
 generator uses map-name rules only to create that checked-in assignment file;
 the game uses the generated explicit assignments, never a runtime name guess.
 
@@ -108,7 +108,7 @@ while progressively stronger Pokémon become possible in later places.
 The implementation includes a complete explicit map/place-to-maximum-BST
 assignment. Starting locations use a low cap, midgame routes a higher cap, and
 late-game routes can allow the full eligible range. The values are reviewed in
-[`biome_encounter_assignments.csv`](./biome_encounter_assignments.csv).
+[`biome_encounter_assignments.csv`](../reference/biome_encounter_assignments.csv).
 
 The map's ordinary encounter level rules remain in effect. BST gating controls
 which species may be selected; it does not raise their level.
@@ -164,10 +164,10 @@ rates, and available methods. The randomizer replaces species entries only.
 
 ## Generated data
 
-- [`biome_species_catalog.csv`](./biome_species_catalog.csv) is the
+- [`biome_species_catalog.csv`](../reference/biome_species_catalog.csv) is the
   canonical-species biome membership source. It contains 914 eligible species
   and excludes Legendary, Mythical, Ultra Beast, and Paradox species.
-- [`biome_encounter_assignments.csv`](./biome_encounter_assignments.csv)
+- [`biome_encounter_assignments.csv`](../reference/biome_encounter_assignments.csv)
   assigns every ordinary Emerald encounter table a biome, method, slot count,
   and BST ceiling.
 - `tools/generate_biome_encounter_data.py` converts both CSV/data sources into
