@@ -28,10 +28,6 @@ LittlerootTown_BrendansHouse_2F_EventScript_TryUpdateBrendanPos::
 LittlerootTown_BrendansHouse_2F_EventScript_Ret::
 	return
 
-LittlerootTown_BrendansHouse_2F_EventScript_RandomItemBall::
-	setvar VAR_LAST_TALKED, 15
-	goto Common_EventScript_FindItem
-
 LittlerootTown_BrendansHouse_2F_EventScript_CheckSetReadyToMeetBrendan::
 	checkplayergender
 	goto_if_eq VAR_RESULT, FEMALE, LittlerootTown_BrendansHouse_2F_EventScript_SetReadyToMeetBrendan
