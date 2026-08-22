@@ -43,8 +43,9 @@ All direct scripted rewards remain vanilla, including item gifts and progression
 rewards.
 
 Shops and berry-tree yields are not routed through the item-randomizer code,
-with one deliberate exception: Mauville Game Corner's prize counter offers
-items from the randomizer pool.
+with one deliberate exception: when enabled, Mauville Game Corner's prize
+counter offers items from the randomizer pool. When disabled, it restores the
+normal five TM prizes.
 
 ## Mauville Game Corner catalog
 

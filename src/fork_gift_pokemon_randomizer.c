@@ -1,6 +1,7 @@
 #include "global.h"
 #include "fork_encounter_randomizer.h"
 #include "fork_gift_pokemon_randomizer.h"
+#include "fork_run.h"
 #include "pokemon.h"
 #include "random.h"
 
@@ -103,11 +104,18 @@ static enum Species SelectRandomGiftSpecies(const enum Species *candidates, u16 
 
 enum Species GetForkRandomizedStarterSpecies(u8 slot)
 {
+    if (!ForkAreRandomEncountersEnabled())
+    {
+        static const enum Species sVanillaStarters[] = {SPECIES_TREECKO, SPECIES_TORCHIC, SPECIES_MUDKIP};
+        return slot < ARRAY_COUNT(sVanillaStarters) ? sVanillaStarters[slot] : SPECIES_TREECKO;
+    }
     return SelectRandomStarterSpecies(slot);
 }
 
 enum Species GetForkRandomizedStevenGiftSpecies(void)
 {
+    if (!ForkAreRandomEncountersEnabled())
+        return SPECIES_BELDUM;
     return SelectRandomGiftSpecies(sPseudoLegendaryFirstStages, ARRAY_COUNT(sPseudoLegendaryFirstStages), 0x53544556, 0, SPECIES_BELDUM);
 }
 

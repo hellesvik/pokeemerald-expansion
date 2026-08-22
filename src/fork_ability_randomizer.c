@@ -1,6 +1,7 @@
 #include "global.h"
 #include "fork_ability_randomizer.h"
 #include "fork_encounter_randomizer.h"
+#include "fork_run.h"
 #include "pokemon.h"
 #include "random.h"
 
@@ -138,6 +139,8 @@ static void BuildAbilityPool(void)
 
 bool8 IsForkAbilityRandomizedSpecies(enum Species species)
 {
+    if (!ForkAreRandomAbilitiesEnabled())
+        return FALSE;
     BuildAbilityPool();
     return IsEligibleAbilitySpecies(species) && !sExcludedFamilies[GetFamilyRoot(species)];
 }

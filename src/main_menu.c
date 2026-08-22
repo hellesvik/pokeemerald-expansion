@@ -14,6 +14,8 @@
 #include "link.h"
 #include "main.h"
 #include "main_menu.h"
+#include "fork_new_game_options.h"
+#include "fork_run.h"
 #include "menu.h"
 #include "list_menu.h"
 #include "mystery_event_menu.h"
@@ -144,8 +146,7 @@
  * CB2_NewGameBirchSpeech_ReturnFromNamingScreen
  * Task_NewGameBirchSpeech_ReturnFromNamingScreenShowTextbox
  * Task_NewGameBirchSpeech_SoItsPlayerName
- * Task_NewGameBirchSpeech_CreateNameYesNo
- * Task_NewGameBirchSpeech_ProcessNameYesNoMenu
+ * Task_NewGameBirchSpeech_ContinueAfterName
  *  - If confirmed, advance to Task_NewGameBirchSpeech_SlidePlatformAway2.
  *  - Otherwise, return to Task_NewGameBirchSpeech_BoyOrGirl.
  *
@@ -226,8 +227,11 @@ static void Task_NewGameBirchSpeech_WaitForWhatsYourNameToPrint(u8);
 static void Task_NewGameBirchSpeech_WaitPressBeforeNameChoice(u8);
 static void Task_NewGameBirchSpeech_StartNamingScreen(u8);
 static void CB2_NewGameBirchSpeech_ReturnFromNamingScreen(void);
-static void Task_NewGameBirchSpeech_CreateNameYesNo(u8);
-static void Task_NewGameBirchSpeech_ProcessNameYesNoMenu(u8);
+static void Task_NewGameBirchSpeech_ContinueAfterName(u8);
+static void Task_NewGameFeatureOptions_Init(u8);
+static void Task_NewGameBirchSpeech_FeatureOptions(u8);
+static void NewGameBirchSpeech_ShowFeatureOptions(u8, u8, u16, u8);
+static void NewGameBirchSpeech_ClearFeatureOptions(void);
 void CreateYesNoMenuParameterized(u8, u8, u16, u16, u8, u8);
 static void Task_NewGameBirchSpeech_SlidePlatformAway2(u8);
 static void Task_NewGameBirchSpeech_ReshowBirchLotad(u8);
@@ -262,6 +266,33 @@ static const u8 gJPText_No1MSubCircuit[] = _("1Mサブきばんが ささって�
 static const u8 gText_BatteryRunDry[] = _("The internal battery has run dry.\nThe game can be played.\pHowever, clock-based events will\nno longer occur.");
 
 static const u8 gText_MainMenuNewGame[] = _("NEW GAME");
+static const u8 *const sText_NewGameFeatureOptionsPages[] =
+{
+    COMPOUND_STRING("FEATURE OPTIONS 1/4"), COMPOUND_STRING("FEATURE OPTIONS 2/4"), COMPOUND_STRING("FEATURE OPTIONS 3/4"), COMPOUND_STRING("FEATURE OPTIONS 4/4"),
+};
+static const u8 sText_NewGameFeatureOptionsHelp[] = _("L/R: PAGE   START: CONFIRM");
+static const u8 sText_NewGameFeatureCursor[] = _(">");
+static const u8 *const sText_NewGameFeatureNames[] =
+{
+    COMPOUND_STRING("MODE"), COMPOUND_STRING("CATCH LIMIT"), COMPOUND_STRING("LEVEL CAP"), COMPOUND_STRING("FAINT RULE"),
+    COMPOUND_STRING("ITEMS IN BATTLE"), COMPOUND_STRING("INFINITE RARE CANDY"), COMPOUND_STRING("INFINITE REPEL"), COMPOUND_STRING("PLAYER EVS"),
+    COMPOUND_STRING("ITEM RANDOMIZER"), COMPOUND_STRING("RANDOM ENCOUNTERS"), COMPOUND_STRING("RANDOMIZER MAX GEN"), COMPOUND_STRING("RANDOM ABILITIES"),
+    COMPOUND_STRING("MEGA EVOLUTION"),
+};
+static const u8 sText_NewGameFeatureNuzlite[] = _("NUZLITE");
+static const u8 sText_NewGameFeatureNormal[] = _("NORMAL");
+static const u8 sText_NewGameFeatureNuzlocke[] = _("NUZLOCKE");
+static const u8 sText_NewGameFeatureCustom[] = _("CUSTOM");
+static const u8 sText_NewGameFeatureOn[] = _("ON");
+static const u8 sText_NewGameFeatureOff[] = _("OFF");
+static const u8 sText_NewGameFeatureEvsNormal[] = _("NORMAL");
+static const u8 sText_NewGameFeatureWhiteout[] = _("1/WHITEOUT");
+static const u8 sText_NewGameFeatureOnFaint[] = _("ON FAINT");
+static const u8 *const sText_NewGameFeatureMaxGen[] =
+{
+    COMPOUND_STRING("GEN 3"), COMPOUND_STRING("GEN 4"), COMPOUND_STRING("GEN 5"),
+    COMPOUND_STRING("GEN 6"), COMPOUND_STRING("GEN 7"), COMPOUND_STRING("GEN 8"), COMPOUND_STRING("GEN 9"),
+};
 static const u8 gText_MainMenuContinue[] = _("CONTINUE");
 static const u8 gText_MainMenuOption[] = _("OPTION");
 static const u8 gText_MainMenuMysteryGift[] = _("MYSTERY GIFT");
@@ -419,6 +450,33 @@ static const struct WindowTemplate sNewGameBirchSpeechTextWindows[] =
         .height = 10,
         .paletteNum = 15,
         .baseBlock = 0x85
+    },
+    {
+        .bg = 0,
+        .tilemapLeft = 2,
+        .tilemapTop = 1,
+        .width = 26,
+        .height = 4,
+        .paletteNum = 15,
+        .baseBlock = 1
+    },
+    {
+        .bg = 0,
+        .tilemapLeft = 2,
+        .tilemapTop = 6,
+        .width = 26,
+        .height = 14,
+        .paletteNum = 15,
+        .baseBlock = 0x6D
+    },
+    {
+        .bg = 0,
+        .tilemapLeft = 2,
+        .tilemapTop = 20,
+        .width = 26,
+        .height = 4,
+        .paletteNum = 15,
+        .baseBlock = 0x1D9
     },
     DUMMY_WIN_TEMPLATE
 };
@@ -1091,7 +1149,7 @@ static void Task_HandleMainMenuAPressed(u8 taskId)
 
             gPlttBufferUnfaded[0] = RGB_BLACK;
             gPlttBufferFaded[0] = RGB_BLACK;
-            gTasks[taskId].func = Task_NewGameBirchSpeech_Init;
+            gTasks[taskId].func = Task_NewGameFeatureOptions_Init;
             break;
         case ACTION_CONTINUE:
             gPlttBufferUnfaded[0] = RGB_BLACK;
@@ -1645,33 +1703,123 @@ static void Task_NewGameBirchSpeech_SoItsPlayerName(u8 taskId)
     NewGameBirchSpeech_ClearWindow(0);
     StringExpandPlaceholders(gStringVar4, gText_Birch_SoItsPlayer);
     AddTextPrinterForMessage(TRUE);
-    gTasks[taskId].func = Task_NewGameBirchSpeech_CreateNameYesNo;
+    gTasks[taskId].func = Task_NewGameBirchSpeech_ContinueAfterName;
 }
 
-static void Task_NewGameBirchSpeech_CreateNameYesNo(u8 taskId)
+static void Task_NewGameBirchSpeech_ContinueAfterName(u8 taskId)
 {
     if (!RunTextPrintersAndIsPrinter0Active())
     {
-        CreateYesNoMenuParameterized(2, 1, 0xF3, 0xDF, 2, 15);
-        gTasks[taskId].func = Task_NewGameBirchSpeech_ProcessNameYesNoMenu;
-    }
-}
-
-static void Task_NewGameBirchSpeech_ProcessNameYesNoMenu(u8 taskId)
-{
-    switch (Menu_ProcessInputNoWrapClearOnChoose())
-    {
-    case 0:
-        PlaySE(SE_SELECT);
         gSprites[gTasks[taskId].tPlayerSpriteId].oam.objMode = ST_OAM_OBJ_BLEND;
         NewGameBirchSpeech_StartFadeOutTarget1InTarget2(taskId, 2);
         NewGameBirchSpeech_StartFadePlatformIn(taskId, 1);
         gTasks[taskId].func = Task_NewGameBirchSpeech_SlidePlatformAway2;
-        break;
-    case MENU_B_PRESSED:
-    case 1:
+    }
+}
+
+static void Task_NewGameFeatureOptions_Init(u8 taskId)
+{
+    FreeAllWindowBuffers();
+    InitWindows(sNewGameBirchSpeechTextWindows);
+    LoadMainMenuWindowFrameTiles(0, MAIN_MENU_BORDER_TILE);
+    ResetPaletteFade();
+    LoadPalette(sMainMenuBgPal, BG_PLTT_ID(0), PLTT_SIZE_4BPP);
+    LoadPalette(sMainMenuTextPal, BG_PLTT_ID(15), PLTT_SIZE_4BPP);
+    BeginNormalPaletteFade(PALETTES_ALL, 16, 0, 0, RGB_BLACK);
+    SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_OBJ_ON | DISPCNT_OBJ_1D_MAP);
+    SetGpuReg(REG_OFFSET_WIN0H, 0);
+    SetGpuReg(REG_OFFSET_WIN0V, 0);
+    SetGpuReg(REG_OFFSET_WININ, 0);
+    SetGpuReg(REG_OFFSET_WINOUT, 0);
+    ShowBg(0);
+    HideBg(1);
+    gTasks[taskId].data[0] = 0;
+    gTasks[taskId].data[1] = 0xCBF7;
+    gTasks[taskId].data[2] = 0;
+    gTasks[taskId].data[3] = 0;
+    NewGameBirchSpeech_ShowFeatureOptions(0, 0, 0xCBF7, 0);
+    gTasks[taskId].func = Task_NewGameBirchSpeech_FeatureOptions;
+}
+
+static void Task_NewGameBirchSpeech_FeatureOptions(u8 taskId)
+{
+    u8 page = gTasks[taskId].data[3];
+    u8 selection = gTasks[taskId].data[0];
+    u16 values = gTasks[taskId].data[1];
+    u8 settings = gTasks[taskId].data[2];
+    u8 nextSelection;
+    u16 nextValues;
+
+    if (ForkNewGameOptionsShouldContinue(gMain.newKeys))
+    {
         PlaySE(SE_SELECT);
-        gTasks[taskId].func = Task_NewGameBirchSpeech_BoyOrGirl;
+        ForkConfigureGameplayOptions(values & 1, (values >> 1) & 1, (values >> 2) & 3, (values >> 4) & 1, (values >> 5) & 1, (values >> 6) & 1, (values >> 7) & 1, (values >> 8) & 1, (values >> 9) & 1, (values >> 14) & 1, (values >> 10) & 0xF, (values >> 15) & 1);
+        NewGameBirchSpeech_ClearFeatureOptions();
+        FreeAllWindowBuffers();
+        gTasks[taskId].func = Task_NewGameBirchSpeech_Init;
+    }
+    else if (ForkNewGameOptionsNextPage(page, gMain.newKeys) != page)
+    {
+        PlaySE(SE_SELECT);
+        gTasks[taskId].data[3] = ForkNewGameOptionsNextPage(page, gMain.newKeys);
+        gTasks[taskId].data[0] = 0;
+        NewGameBirchSpeech_ShowFeatureOptions(gTasks[taskId].data[3], 0, values, settings);
+    }
+    else
+    {
+        nextSelection = page == 3 ? 0 : ForkNewGameOptionsMoveSelection(selection, gMain.newKeys);
+            u8 index = page * 4 + selection;
+
+        if (index == 0)
+        {
+            settings = ForkNewGameOptionsNextSetting(settings, gMain.newKeys);
+            nextValues = ForkNewGameOptionsPresetValues(settings);
+        }
+        else if (index == 3 && ForkNewGameOptionsCanEditIndex(settings, index))
+        {
+            nextValues = ForkNewGameOptionsNextFaintRule((values >> 2) & 3, gMain.newKeys);
+        }
+        else if (index == 10 && ForkNewGameOptionsCanEditIndex(settings, index))
+        {
+            nextValues = ForkNewGameOptionsNextMaxGen((values >> 10) & 0xF, gMain.newKeys);
+        }
+        else if (ForkNewGameOptionsCanEditIndex(settings, index))
+        {
+            u8 bit = index >= 4 ? index : index - 1;
+            nextValues = ForkNewGameOptionsToggleValue((values >> bit) & 1, gMain.newKeys);
+        }
+        else
+        {
+            nextValues = (values >> (index >= 4 ? index : index - 1)) & 1;
+            if (index == 3)
+                nextValues = ForkNewGameOptionsNextFaintRule((values >> 2) & 3, gMain.newKeys);
+        }
+        if (nextSelection != selection)
+        {
+            PlaySE(SE_SELECT);
+            gTasks[taskId].data[0] = nextSelection;
+            NewGameBirchSpeech_ShowFeatureOptions(page, nextSelection, values, settings);
+        }
+        else if (index == 0 && settings != gTasks[taskId].data[2])
+        {
+            PlaySE(SE_SELECT);
+            gTasks[taskId].data[2] = settings;
+            gTasks[taskId].data[1] = nextValues;
+            NewGameBirchSpeech_ShowFeatureOptions(page, selection, nextValues, settings);
+        }
+        else if (index != 0 && ForkNewGameOptionsCanEditIndex(settings, index)
+              && nextValues != (index == 3 ? ((values >> 2) & 3) : index == 10 ? ((values >> 10) & 0xF) : ((values >> (index >= 4 ? index : index - 1)) & 1)))
+        {
+            PlaySE(SE_SELECT);
+            if (index == 3)
+                values = (values & 0x3) | (nextValues << 2);
+            else if (index == 10)
+                values = (values & ~(0xF << 10)) | (nextValues << 10);
+            else
+                values ^= (1 << (index >= 4 ? index : index - 1));
+            gTasks[taskId].data[1] = values;
+            NewGameBirchSpeech_ShowFeatureOptions(page, selection, values, settings);
+        }
     }
 }
 
@@ -1889,7 +2037,7 @@ static void CB2_NewGameBirchSpeech_ReturnFromNamingScreen(void)
     SetVBlankCallback(VBlankCB_MainMenu);
     SetMainCallback2(CB2_MainMenu);
     InitWindows(sNewGameBirchSpeechTextWindows);
-    LoadMainMenuWindowFrameTiles(0, 0xF3);
+    LoadMainMenuWindowFrameTiles(0, MAIN_MENU_BORDER_TILE);
     LoadMessageBoxGfx(0, BIRCH_DLG_BASE_TILE_NUM, BG_PLTT_ID(15));
     PutWindowTilemap(0);
     CopyWindowToVram(0, COPYWIN_FULL);
@@ -2282,6 +2430,77 @@ static void NewGameBirchSpeech_ClearWindow(u8 windowId)
 
     FillWindowPixelRect(windowId, bgColor, 0, 0, maxCharWidth * winWidth, maxCharHeight * winHeight);
     CopyWindowToVram(windowId, COPYWIN_GFX);
+}
+
+static void NewGameBirchSpeech_ShowFeatureOptions(u8 page, u8 selection, u16 values, u8 settings)
+{
+    u8 row;
+
+    LoadPalette(sMainMenuTextPal, BG_PLTT_ID(15), PLTT_SIZE_4BPP);
+    FillWindowPixelBuffer(3, PIXEL_FILL(0xA));
+    FillWindowPixelBuffer(4, PIXEL_FILL(0xA));
+    FillWindowPixelBuffer(5, PIXEL_FILL(0xA));
+    AddTextPrinterParameterized3(3, FONT_NORMAL, 8, 1, sTextColor_MenuInfo, TEXT_SKIP_DRAW, sText_NewGameFeatureOptionsPages[page]);
+    AddTextPrinterParameterized3(3, FONT_NORMAL, 8, 15, sTextColor_MenuInfo, TEXT_SKIP_DRAW, sText_NewGameFeatureOptionsHelp);
+    for (row = 0; row < 4; row++)
+    {
+        u8 index = page * 4 + row;
+        const u8 *colors = sTextColor_MenuInfo;
+        const u8 *value;
+
+        if (index >= ARRAY_COUNT(sText_NewGameFeatureNames))
+            continue;
+
+        if (index == 0)
+        {
+            switch (settings)
+            {
+            case 0: value = sText_NewGameFeatureNuzlite; break;
+            case 1: value = sText_NewGameFeatureNuzlocke; break;
+            case 2: value = sText_NewGameFeatureNormal; break;
+            default: value = sText_NewGameFeatureCustom; break;
+            }
+        }
+        else
+        {
+            if (index == 3)
+            {
+                switch ((values >> 2) & 3)
+                {
+                case 1: value = sText_NewGameFeatureWhiteout; break;
+                case 2: value = sText_NewGameFeatureOnFaint; break;
+                default: value = sText_NewGameFeatureOff; break;
+                }
+            }
+            else if (index == 10)
+                value = sText_NewGameFeatureMaxGen[((values >> 10) & 0xF) - GEN_3];
+            else
+                value = index == 7
+                    ? ((values >> 7) & 1 ? sText_NewGameFeatureEvsNormal : sText_NewGameFeatureOff)
+                    : ((values >> (index >= 4 ? index : index - 1)) & 1 ? sText_NewGameFeatureOn : sText_NewGameFeatureOff);
+        }
+
+        if (row == selection)
+            AddTextPrinterParameterized3(4, FONT_NORMAL, 0, row * 16 + 1, colors, TEXT_SKIP_DRAW, sText_NewGameFeatureCursor);
+        AddTextPrinterParameterized3(4, FONT_NORMAL, 8, row * 16 + 1, colors, TEXT_SKIP_DRAW, sText_NewGameFeatureNames[index]);
+        AddTextPrinterParameterized3(4, FONT_NORMAL, 160, row * 16 + 1, colors, TEXT_SKIP_DRAW, value);
+    }
+    PutWindowTilemap(3);
+    PutWindowTilemap(4);
+    PutWindowTilemap(5);
+    DrawMainMenuWindowBorder(&sNewGameBirchSpeechTextWindows[3], MAIN_MENU_BORDER_TILE);
+    DrawMainMenuWindowBorder(&sNewGameBirchSpeechTextWindows[4], MAIN_MENU_BORDER_TILE);
+    DrawMainMenuWindowBorder(&sNewGameBirchSpeechTextWindows[5], MAIN_MENU_BORDER_TILE);
+    CopyWindowToVram(3, COPYWIN_FULL);
+    CopyWindowToVram(4, COPYWIN_FULL);
+    CopyWindowToVram(5, COPYWIN_FULL);
+}
+
+static void NewGameBirchSpeech_ClearFeatureOptions(void)
+{
+    NewGameBirchSpeech_ClearGenderWindow(3, TRUE);
+    NewGameBirchSpeech_ClearGenderWindow(4, TRUE);
+    NewGameBirchSpeech_ClearGenderWindow(5, TRUE);
 }
 
 static void NewGameBirchSpeech_WaitForThisIsPokemonText(struct TextPrinterTemplate *printer, u16 renderCmd)

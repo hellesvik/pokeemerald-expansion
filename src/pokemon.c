@@ -5065,6 +5065,9 @@ s32 CalculateFriendshipBonuses(struct Pokemon *mon, s32 modifier, enum HoldEffec
 
 void MonGainEVs(struct Pokemon *mon, enum Species defeatedSpecies)
 {
+    if (!ForkArePlayerEvsEnabled())
+        return;
+
     u8 evs[NUM_STATS];
     u16 evIncrease = 0;
     u16 totalEVs = 0;

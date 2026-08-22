@@ -4,6 +4,9 @@ This file summarizes the gameplay-specific behavior added in this fork on top of
 
 ## One Catch Per Area
 
+The new-game feature menu lets players enable or disable this rule before
+starting the story. See [New-Game Feature Options](docs/fork/new_game_options.md).
+
 This fork allows one normal wild encounter per named area.
 Named areas are keyed by region map section, not by individual map file, so places like multi-room caves and the Safari Zone share one encounter slot when they share the same map section.
 
@@ -85,7 +88,7 @@ This fork uses the existing summary-screen IV view rather than a fully custom pa
 
 ## Gift Pokémon Randomization
 
-Professor Birch's three Route 101 starter choices are randomized from enabled,
+When randomized encounters are enabled, Professor Birch's three Route 101 starter choices are randomized from enabled,
 base-form Pokémon through `FORK_MAX_GEN_MONS` with a base-stat total no higher
 than 325. The three choices are distinct.
 
@@ -96,6 +99,9 @@ per save, so they can differ between playthroughs.
 Steven's postgame Mossdeep gift is randomized from the first stage of a
 pseudo-legendary line through the same generation limit. It is never a
 single-stage Pokémon.
+
+When randomized encounters are disabled, the vanilla Treecko, Torchic, and
+Mudkip starters, Beldum gift, and Root/Claw Fossils are restored.
 
 Castform, the Wynaut Egg, and Birch's post-upgrade Johto starter remain
 unchanged.

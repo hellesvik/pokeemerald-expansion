@@ -1,4 +1,5 @@
 #include "global.h"
+#include "fork_run.h"
 #include "battle.h"
 #include "daycare.h"
 #include "event_data.h"
@@ -12,6 +13,7 @@
 #include "constants/flags.h"
 #include "constants/items.h"
 #include "constants/vars.h"
+#include "config/wild_encounter.h"
 
 #define FORK_AREA_STATE_INIT_FLAG FLAG_SPECIAL_FLAG_UNUSED_0x4003
 #define FORK_AREA_STATE_VAR_COUNT 14
@@ -54,7 +56,88 @@ bool32 ForkIsAreaEncounterRuleActive(void)
 {
     // This flag is set immediately after Birch's successful five-Poké-Ball
     // gift, so early forced encounters never consume an area.
-    return FlagGet(FLAG_ADVENTURE_STARTED);
+    return FlagGet(FLAG_ADVENTURE_STARTED) && ForkIsCatchLimitEnabled();
+}
+
+bool32 ForkIsCatchLimitEnabled(void)
+{
+    return !gSaveBlock3Ptr->forkGameplayOptionsConfigured || gSaveBlock3Ptr->forkCatchLimitEnabled;
+}
+
+bool32 ForkIsLevelCapEnabled(void)
+{
+    return !gSaveBlock3Ptr->forkGameplayOptionsConfigured || gSaveBlock3Ptr->forkLevelCapEnabled;
+}
+
+u8 ForkGetFaintRule(void)
+{
+    if (!gSaveBlock3Ptr->forkGameplayOptionsConfigured)
+        return FORK_FAINT_RULE_WHITEOUT;
+    return gSaveBlock3Ptr->forkFaintRule;
+}
+
+bool32 ForkAreBattleItemsEnabled(void)
+{
+    return !gSaveBlock3Ptr->forkGameplayOptionsConfigured || gSaveBlock3Ptr->forkItemsInBattleEnabled;
+}
+
+bool32 ForkHasInfiniteRareCandy(void)
+{
+    return !gSaveBlock3Ptr->forkGameplayOptionsConfigured || gSaveBlock3Ptr->forkInfiniteRareCandyEnabled;
+}
+
+bool32 ForkHasInfiniteRepel(void)
+{
+    return !gSaveBlock3Ptr->forkGameplayOptionsConfigured || gSaveBlock3Ptr->forkInfiniteRepelEnabled;
+}
+
+bool32 ForkArePlayerEvsEnabled(void)
+{
+    return !gSaveBlock3Ptr->forkGameplayOptionsConfigured || gSaveBlock3Ptr->forkPlayerEvsEnabled;
+}
+
+bool32 ForkIsItemRandomizerEnabled(void)
+{
+    return !gSaveBlock3Ptr->forkGameplayOptionsConfigured || gSaveBlock3Ptr->forkItemRandomizerEnabled;
+}
+
+bool32 ForkAreRandomEncountersEnabled(void)
+{
+    return !gSaveBlock3Ptr->forkGameplayOptionsConfigured || gSaveBlock3Ptr->forkRandomEncountersEnabled;
+}
+
+bool32 ForkAreRandomAbilitiesEnabled(void)
+{
+    return !gSaveBlock3Ptr->forkGameplayOptionsConfigured || gSaveBlock3Ptr->forkRandomAbilitiesEnabled;
+}
+
+u8 ForkGetRandomizerMaxGen(void)
+{
+    if (!gSaveBlock3Ptr->forkGameplayOptionsConfigured)
+        return FORK_MAX_GEN_MONS;
+    return gSaveBlock3Ptr->forkRandomizerMaxGen;
+}
+
+bool32 ForkAreMegaEvolutionsEnabled(void)
+{
+    return !gSaveBlock3Ptr->forkGameplayOptionsConfigured || gSaveBlock3Ptr->forkMegaEvolutionEnabled;
+}
+
+void ForkConfigureGameplayOptions(bool32 catchLimitEnabled, bool32 levelCapEnabled, u8 faintRule, bool32 itemsInBattleEnabled, bool32 infiniteRareCandyEnabled, bool32 infiniteRepelEnabled, bool32 playerEvsEnabled, bool32 itemRandomizerEnabled, bool32 randomEncountersEnabled, bool32 randomAbilitiesEnabled, u8 randomizerMaxGen, bool32 megaEvolutionEnabled)
+{
+    gSaveBlock3Ptr->forkGameplayOptionsConfigured = TRUE;
+    gSaveBlock3Ptr->forkCatchLimitEnabled = catchLimitEnabled;
+    gSaveBlock3Ptr->forkLevelCapEnabled = levelCapEnabled;
+    gSaveBlock3Ptr->forkFaintRule = faintRule;
+    gSaveBlock3Ptr->forkItemsInBattleEnabled = itemsInBattleEnabled;
+    gSaveBlock3Ptr->forkInfiniteRareCandyEnabled = infiniteRareCandyEnabled;
+    gSaveBlock3Ptr->forkInfiniteRepelEnabled = infiniteRepelEnabled;
+    gSaveBlock3Ptr->forkPlayerEvsEnabled = playerEvsEnabled;
+    gSaveBlock3Ptr->forkItemRandomizerEnabled = itemRandomizerEnabled;
+    gSaveBlock3Ptr->forkRandomEncountersEnabled = randomEncountersEnabled;
+    gSaveBlock3Ptr->forkRandomizerMaxGen = randomizerMaxGen;
+    gSaveBlock3Ptr->forkRandomAbilitiesEnabled = randomAbilitiesEnabled;
+    gSaveBlock3Ptr->forkMegaEvolutionEnabled = megaEvolutionEnabled;
 }
 
 static void EnsureAreaStateInitialized(void)
@@ -250,11 +333,11 @@ bool32 ForkIsSoftNuzlockeMon(struct Pokemon *mon)
 
 void ForkEnsureKeyItemsPresent(void)
 {
-    if (!CheckBagHasItem(ITEM_MEGA_RING, 1))
+    if (ForkAreMegaEvolutionsEnabled() && !CheckBagHasItem(ITEM_MEGA_RING, 1))
         AddBagItem(ITEM_MEGA_RING, 1);
-    if (!CheckBagHasItem(ITEM_INFINITE_RARE_CANDY, 1))
+    if (ForkHasInfiniteRareCandy() && !CheckBagHasItem(ITEM_INFINITE_RARE_CANDY, 1))
         AddBagItem(ITEM_INFINITE_RARE_CANDY, 1);
-    if (!CheckBagHasItem(ITEM_INFINITE_REPEL, 1))
+    if (ForkHasInfiniteRepel() && !CheckBagHasItem(ITEM_INFINITE_REPEL, 1))
         AddBagItem(ITEM_INFINITE_REPEL, 1);
 }
 
@@ -377,6 +460,9 @@ void ForkSpendCurrentAreaEncounter(void)
 
 void ForkApplySoftNuzlockeWhiteOutPenalty(void)
 {
+    if (ForkGetFaintRule() != FORK_FAINT_RULE_WHITEOUT)
+        return;
+
     u8 candidates[PARTY_SIZE];
     u8 candidateCount = 0;
     u32 softNuzlocke = TRUE;
@@ -404,4 +490,28 @@ void ForkApplySoftNuzlockeWhiteOutPenalty(void)
     SetMonData(&gParties[B_TRAINER_PLAYER][slot], MON_DATA_EXP, &exp);
     CalculateMonStats(&gParties[B_TRAINER_PLAYER][slot]);
     SetMonData(&gParties[B_TRAINER_PLAYER][slot], MON_DATA_HP, &gParties[B_TRAINER_PLAYER][slot].maxHP);
+}
+
+void ForkApplySoftNuzlockeFaintPenalty(u8 partySlot)
+{
+    struct Pokemon *mon;
+    enum Species species;
+    u32 softNuzlocke = TRUE;
+    u8 level = 1;
+    u32 exp;
+
+    if (ForkGetFaintRule() != FORK_FAINT_RULE_ON_FAINT || partySlot >= PARTY_SIZE)
+        return;
+
+    mon = &gParties[B_TRAINER_PLAYER][partySlot];
+    species = GetMonData(mon, MON_DATA_SPECIES);
+    if (species == SPECIES_NONE || GetMonData(mon, MON_DATA_IS_EGG))
+        return;
+
+    SetMonData(mon, MON_DATA_SOFT_NUZLOCKE, &softNuzlocke);
+    SetMonData(mon, MON_DATA_LEVEL, &level);
+    exp = gExperienceTables[gSpeciesInfo[species].growthRate][level];
+    SetMonData(mon, MON_DATA_EXP, &exp);
+    CalculateMonStats(mon);
+    SetMonData(mon, MON_DATA_HP, &mon->maxHP);
 }

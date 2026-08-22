@@ -4,8 +4,29 @@
 #include "global.h"
 #include "pokemon.h"
 
+enum ForkFaintRule
+{
+    FORK_FAINT_RULE_OFF,
+    FORK_FAINT_RULE_WHITEOUT,
+    FORK_FAINT_RULE_ON_FAINT,
+};
+
 void ForkResetAreaEncounterState(void);
 bool32 ForkIsAreaEncounterRuleActive(void);
+bool32 ForkIsCatchLimitEnabled(void);
+bool32 ForkIsLevelCapEnabled(void);
+void ForkConfigureGameplayOptions(bool32 catchLimitEnabled, bool32 levelCapEnabled, u8 faintRule, bool32 itemsInBattleEnabled, bool32 infiniteRareCandyEnabled, bool32 infiniteRepelEnabled, bool32 playerEvsEnabled, bool32 itemRandomizerEnabled, bool32 randomEncountersEnabled, bool32 randomAbilitiesEnabled, u8 randomizerMaxGen, bool32 megaEvolutionEnabled);
+bool32 ForkAreBattleItemsEnabled(void);
+bool32 ForkHasInfiniteRareCandy(void);
+bool32 ForkHasInfiniteRepel(void);
+bool32 ForkArePlayerEvsEnabled(void);
+bool32 ForkIsItemRandomizerEnabled(void);
+bool32 ForkAreRandomEncountersEnabled(void);
+bool32 ForkAreRandomAbilitiesEnabled(void);
+u8 ForkGetRandomizerMaxGen(void);
+bool32 ForkAreMegaEvolutionsEnabled(void);
+u8 ForkGetFaintRule(void);
+void ForkApplySoftNuzlockeFaintPenalty(u8 partySlot);
 bool32 ForkIsAreaEncounterSpent(mapsec_u8_t mapSecId);
 void ForkSetAreaEncounterSpent(mapsec_u8_t mapSecId);
 bool32 ForkPlayerOwnsSpeciesFamily(enum Species species);

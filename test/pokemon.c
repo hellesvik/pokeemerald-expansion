@@ -135,6 +135,18 @@ TEST("Fork rules enable a hard story-battle level cap while leaving one-use Rare
     EXPECT_EQ(GetCurrentLevelCap(), MAX_LEVEL);
 }
 
+TEST("Fork gameplay options gate the catch limit and level cap")
+{
+    ForkConfigureGameplayOptions(FALSE, FALSE, FORK_FAINT_RULE_WHITEOUT, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, GEN_3, TRUE);
+    EXPECT_EQ(ForkIsCatchLimitEnabled(), FALSE);
+    EXPECT_EQ(ForkIsLevelCapEnabled(), FALSE);
+    EXPECT_EQ(GetCurrentLevelCap(), MAX_LEVEL);
+
+    ForkConfigureGameplayOptions(TRUE, TRUE, FORK_FAINT_RULE_WHITEOUT, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, GEN_3, TRUE);
+    EXPECT_EQ(ForkIsCatchLimitEnabled(), TRUE);
+    EXPECT_EQ(ForkIsLevelCapEnabled(), TRUE);
+}
+
 TEST("Fork rules disable EV gain and expose raw IV values on the summary screen")
 {
     EXPECT_EQ(B_EV_CAP_TYPE, EV_CAP_NO_GAIN);

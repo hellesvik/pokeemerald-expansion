@@ -1,5 +1,6 @@
 #include "global.h"
 #include "battle.h"
+#include "fork_run.h"
 #include "battle_hold_effects.h"
 #include "battle_message.h"
 #include "battle_anim.h"
@@ -3620,6 +3621,8 @@ static void Cmd_tryfaintmon(void)
             }
 
             SetValuesOnFaint(battler);
+            if (GetBattlerSide(battler) == B_SIDE_PLAYER)
+                ForkApplySoftNuzlockeFaintPenalty(gBattlerPartyIndexes[battler]);
             BattleScriptPush(cmd->nextInstr);
             gBattlescriptCurrInstr = BattleScript_FaintBattler;
         }
@@ -13994,4 +13997,3 @@ void BS_RestoreStatChangeQueue(void)
     ClearOtherStatChangeValues(gBattlerAttacker);
     gBattlescriptCurrInstr = cmd->nextInstr;
 }
-

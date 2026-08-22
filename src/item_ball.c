@@ -9,6 +9,7 @@
 #include "string_util.h"
 #include "strings.h"
 #include "fork_tm_randomizer.h"
+#include "fork_run.h"
 #include "constants/event_objects.h"
 #include "constants/flags.h"
 #include "constants/items.h"
@@ -356,6 +357,12 @@ static const enum Item sForkRandomizedHiddenItemPool[] =
     ITEM_RARE_BONE,
 };
 
+static const enum Item sForkVanillaGameCornerPrizes[FORK_GAME_CORNER_PRIZE_COUNT] =
+{
+    ITEM_TM_DOUBLE_TEAM, ITEM_TM_PSYCHIC, ITEM_TM_FLAMETHROWER,
+    ITEM_TM_THUNDERBOLT, ITEM_TM_ICE_BEAM,
+};
+
 STATIC_ASSERT(ARRAY_COUNT(sForkRandomizedItemPool) == FORK_ITEM_RANDOMIZER_POOL_COUNT, ForkItemRandomizerPoolSizeMismatch);
 
 static u32 GetItemBallAmountFromTemplate(u32);
@@ -450,7 +457,8 @@ static u16 GetNextUnclaimedPoolIndex(u16 sourceId)
     for (u16 attempt = 0; attempt < FORK_ITEM_RANDOMIZER_POOL_COUNT; attempt++)
     {
         u16 candidate = LocalRandom(&localRng) % FORK_ITEM_RANDOMIZER_POOL_COUNT;
-        if (!GetForkBit(gSaveBlock3Ptr->forkItemRandomizerPoolClaimed, candidate))
+        if (!GetForkBit(gSaveBlock3Ptr->forkItemRandomizerPoolClaimed, candidate)
+         && (ForkAreMegaEvolutionsEnabled() || gItemsInfo[sForkRandomizedItemPool[candidate]].sortType != ITEM_TYPE_MEGA_STONE))
         {
             SetForkBit(gSaveBlock3Ptr->forkItemRandomizerPoolClaimed, candidate);
             gSaveBlock3Ptr->forkItemRandomizerNextScan = candidate + 1;
@@ -468,7 +476,8 @@ static u16 GetStableUnclaimedPoolIndex(u16 sourceId)
 
     for (u16 attempt = 0; attempt < FORK_ITEM_RANDOMIZER_POOL_COUNT; attempt++)
     {
-        if (!GetForkBit(gSaveBlock3Ptr->forkItemRandomizerPoolClaimed, candidate))
+        if (!GetForkBit(gSaveBlock3Ptr->forkItemRandomizerPoolClaimed, candidate)
+         && (ForkAreMegaEvolutionsEnabled() || gItemsInfo[sForkRandomizedItemPool[candidate]].sortType != ITEM_TYPE_MEGA_STONE))
         {
             SetForkBit(gSaveBlock3Ptr->forkItemRandomizerPoolClaimed, candidate);
             return candidate;
@@ -490,6 +499,8 @@ static u16 GetForkItemBallSourceId(u16 itemBallId)
 
 enum Item ResolveForkRandomizedItem(enum Item itemId, u16 sourceId)
 {
+    if (!ForkIsItemRandomizerEnabled())
+        return itemId;
     u16 poolIndex;
 
     EnsureForkItemRandomizerInitialized();
@@ -520,6 +531,8 @@ enum Item ResolveForkRandomizedItem(enum Item itemId, u16 sourceId)
 
 void InitForkGameCornerPrizeCatalog(void)
 {
+    if (!ForkIsItemRandomizerEnabled())
+        return;
     EnsureForkItemRandomizerInitialized();
 
     if (gSaveBlock3Ptr->forkGameCornerPrizeItems[0] != ITEM_NONE)
@@ -537,6 +550,8 @@ void InitForkGameCornerPrizeCatalog(void)
 
 enum Item GetForkGameCornerPrizeItem(u16 index)
 {
+    if (!ForkIsItemRandomizerEnabled())
+        return index < ARRAY_COUNT(sForkVanillaGameCornerPrizes) ? sForkVanillaGameCornerPrizes[index] : ITEM_NONE;
     InitForkGameCornerPrizeCatalog();
     if (index >= FORK_GAME_CORNER_PRIZE_COUNT)
         return ITEM_NONE;
@@ -552,7 +567,7 @@ void ScrCmd_BuildForkGameCornerPrizeMenu(struct ScriptContext *ctx)
     for (u16 i = 0; i < FORK_GAME_CORNER_PRIZE_COUNT; i++)
     {
         u8 *name = Alloc(40);
-        StringCopy(name, GetItemName(gSaveBlock3Ptr->forkGameCornerPrizeItems[i]));
+        StringCopy(name, GetItemName(GetForkGameCornerPrizeItem(i)));
         StringAppend(name, COMPOUND_STRING("  4,000 COINS"));
         MultichoiceDynamic_PushElement((struct ListMenuItem){ .name = name, .id = i });
     }
@@ -600,6 +615,8 @@ void ClearForkItemBallRandomizationGuard(void)
 
 enum Item ResolveForkRandomizedHiddenItem(enum Item itemId, u16 hiddenItemFlag)
 {
+    if (!ForkIsItemRandomizerEnabled())
+        return itemId;
     rng_value_t localRng;
 
     if (hiddenItemFlag < FLAG_HIDDEN_ITEMS_START)

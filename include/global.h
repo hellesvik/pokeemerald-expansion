@@ -288,6 +288,19 @@ struct SaveBlock3
     u16 forkItemRandomizerSourceToPoolIndex[FORK_ITEM_RANDOMIZER_SOURCE_COUNT];
     u8 forkItemRandomizerSourceAssigned[FORK_ITEM_RANDOMIZER_SOURCE_BITSET_COUNT];
     u8 forkItemRandomizerPoolClaimed[FORK_ITEM_RANDOMIZER_POOL_BITSET_COUNT];
+    u8 forkGameplayOptionsConfigured;
+    u8 forkCatchLimitEnabled;
+    u8 forkLevelCapEnabled;
+    u8 forkFaintRule;
+    u8 forkItemsInBattleEnabled;
+    u8 forkInfiniteRareCandyEnabled;
+    u8 forkInfiniteRepelEnabled;
+    u8 forkPlayerEvsEnabled;
+    u8 forkItemRandomizerEnabled;
+    u8 forkRandomEncountersEnabled;
+    u8 forkRandomizerMaxGen;
+    u8 forkRandomAbilitiesEnabled;
+    u8 forkMegaEvolutionEnabled;
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;

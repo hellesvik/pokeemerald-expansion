@@ -990,7 +990,9 @@ bool32 ToggleInfiniteRepelState(void)
 
 void ItemUseOutOfBattle_Repel(u8 taskId)
 {
-    if (gSpecialVar_ItemId == ITEM_INFINITE_REPEL || REPEL_STEP_COUNT == 0)
+    if (gSpecialVar_ItemId == ITEM_INFINITE_REPEL && !ForkHasInfiniteRepel())
+        gTasks[taskId].func = Task_StartUseRepel;
+    else if (gSpecialVar_ItemId == ITEM_INFINITE_REPEL || REPEL_STEP_COUNT == 0)
         gTasks[taskId].func = Task_StartUseRepel;
     else if (CurrentBattlePyramidLocation() == PYRAMID_LOCATION_NONE)
         DisplayItemMessage(taskId, FONT_NORMAL, gText_RepelEffectsLingered, CloseItemMessage);

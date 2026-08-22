@@ -1,5 +1,6 @@
 #include "global.h"
 #include "fork_encounter_randomizer.h"
+#include "fork_run.h"
 #include "pokemon.h"
 #include "random.h"
 
@@ -92,9 +93,9 @@ static bool8 IsAlreadySelected(enum Species species, const enum Species *selecte
     return FALSE;
 }
 
-u16 GetForkMaxNationalDex(void)
+static u16 GetForkMaxNationalDexForGen(u8 maxGen)
 {
-    switch (FORK_MAX_GEN_MONS)
+    switch (maxGen)
     {
     case GEN_1:
         return NATIONAL_DEX_MEW;
@@ -119,7 +120,15 @@ u16 GetForkMaxNationalDex(void)
 
 static bool8 IsWithinForkMaxGeneration(enum Species species)
 {
-    return gSpeciesInfo[species].natDexNum <= GetForkMaxNationalDex();
+    u8 maxGen = ForkGetRandomizerMaxGen();
+    if (maxGen > FORK_MAX_GEN_MONS)
+        maxGen = FORK_MAX_GEN_MONS;
+    return gSpeciesInfo[species].natDexNum <= GetForkMaxNationalDexForGen(maxGen);
+}
+
+u16 GetForkMaxNationalDex(void)
+{
+    return GetForkMaxNationalDexForGen(FORK_MAX_GEN_MONS);
 }
 
 static enum Species SelectEncounterSpecies(const struct ForkEncounterAssignment *assignment, u8 mapGroup, u8 mapNum, enum WildPokemonArea area, u8 slot, const enum Species *selected, u8 selectedCount, enum Species fallback)
@@ -159,6 +168,8 @@ u16 GetForkEncounterRandomizerBstCap(u8 mapGroup, u8 mapNum, enum WildPokemonAre
 
 enum Species ResolveForkRandomizedEncounterSpecies(u8 mapGroup, u8 mapNum, enum WildPokemonArea area, u8 slot, enum Species fallback)
 {
+    if (!ForkAreRandomEncountersEnabled())
+        return fallback;
     const struct ForkEncounterAssignment *assignment = FindAssignment(mapGroup, mapNum, area);
     enum Species selected[LAND_WILD_COUNT];
     u8 i;

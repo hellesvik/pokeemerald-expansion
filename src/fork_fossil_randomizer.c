@@ -1,6 +1,7 @@
 #include "global.h"
 #include "event_data.h"
 #include "fork_fossil_randomizer.h"
+#include "fork_run.h"
 #include "item.h"
 #include "random.h"
 
@@ -26,6 +27,8 @@ enum Item GetForkMirageTowerFossil(u8 choice)
 
     if (choice >= ARRAY_COUNT(selected))
         return ITEM_NONE;
+    if (!ForkAreRandomEncountersEnabled())
+        return choice == 0 ? ITEM_ROOT_FOSSIL : ITEM_CLAW_FOSSIL;
 
     for (u8 selectedCount = 0; selectedCount <= choice; selectedCount++)
     {

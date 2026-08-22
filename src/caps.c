@@ -4,6 +4,7 @@
 #include "event_data.h"
 #include "caps.h"
 #include "pokemon.h"
+#include "fork_run.h"
 #include "constants/opponents.h"
 
 struct LevelCapMilestone
@@ -126,6 +127,9 @@ static const struct LevelCapMilestone sLevelCapMilestones[] =
 u32 GetCurrentLevelCap(void)
 {
     u32 i;
+
+    if (!ForkIsLevelCapEnabled())
+        return MAX_LEVEL;
 
     if (B_LEVEL_CAP_TYPE == LEVEL_CAP_FLAG_LIST)
     {
