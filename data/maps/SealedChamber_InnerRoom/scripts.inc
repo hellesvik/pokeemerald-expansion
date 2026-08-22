@@ -3,9 +3,9 @@ SealedChamber_InnerRoom_MapScripts::
 
 SealedChamber_InnerRoom_EventScript_BrailleBackWall::
 	lockall
-	braillemsgbox SealedChamber_InnerRoom_Braille_FirstWailordLastRelicanth
+	braillemsgbox SealedChamber_InnerRoom_Braille_RedEmerald
 	goto_if_set FLAG_REGI_DOORS_OPENED, SealedChamber_InnerRoom_EventScript_NoEffect
-	specialvar VAR_RESULT, CheckRelicanthWailord
+	specialvar VAR_RESULT, HasAllRegiEmeralds
 	goto_if_eq VAR_RESULT, FALSE, SealedChamber_InnerRoom_EventScript_NoEffect
 	fadeoutbgm 0
 	playse SE_TRUCK_MOVE
@@ -33,37 +33,36 @@ SealedChamber_InnerRoom_EventScript_NoEffect::
 
 SealedChamber_InnerRoom_EventScript_BrailleStoryPart1::
 	lockall
-	braillemsgbox SealedChamber_InnerRoom_Braille_InThisCaveWeHaveLived
+	braillemsgbox SealedChamber_InnerRoom_Braille_BlueEmerald
 	releaseall
 	end
 
 SealedChamber_InnerRoom_EventScript_BrailleStoryPart2::
 	lockall
-	braillemsgbox SealedChamber_InnerRoom_Braille_WeOweAllToThePokemon
+	braillemsgbox SealedChamber_InnerRoom_Braille_GreenEmerald
 	releaseall
 	end
 
 SealedChamber_InnerRoom_EventScript_BrailleStoryPart3::
 	lockall
-	braillemsgbox SealedChamber_InnerRoom_Braille_ButWeSealedThePokemonAway
+	braillemsgbox SealedChamber_InnerRoom_Braille_YellowEmerald
 	releaseall
 	end
 
 SealedChamber_InnerRoom_EventScript_BrailleStoryPart4::
 	lockall
-	braillemsgbox SealedChamber_InnerRoom_Braille_WeFearedIt
+	braillemsgbox SealedChamber_InnerRoom_Braille_PurpleEmerald
 	releaseall
 	end
 
 SealedChamber_InnerRoom_EventScript_BrailleStoryPart5::
 	lockall
-	braillemsgbox SealedChamber_InnerRoom_Braille_ThoseWithCourageHope
+	braillemsgbox SealedChamber_InnerRoom_Braille_WhiteEmerald
 	releaseall
 	end
 
 SealedChamber_InnerRoom_EventScript_BrailleStoryPart6::
 	lockall
-	braillemsgbox SealedChamber_InnerRoom_Braille_OpenDoorEternalPokemonWaits
+	braillemsgbox SealedChamber_InnerRoom_Braille_BlackEmerald
 	releaseall
 	end
-

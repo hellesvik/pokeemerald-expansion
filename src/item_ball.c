@@ -357,10 +357,19 @@ static const enum Item sForkRandomizedHiddenItemPool[] =
     ITEM_RARE_BONE,
 };
 
-static const enum Item sForkVanillaGameCornerPrizes[FORK_GAME_CORNER_PRIZE_COUNT] =
+static const enum Item sForkGameCornerPrizes[FORK_GAME_CORNER_MENU_PRIZE_COUNT] =
 {
-    ITEM_TM_DOUBLE_TEAM, ITEM_TM_PSYCHIC, ITEM_TM_FLAMETHROWER,
-    ITEM_TM_THUNDERBOLT, ITEM_TM_ICE_BEAM,
+    ITEM_FIRE_STONE,
+    ITEM_WATER_STONE,
+    ITEM_THUNDER_STONE,
+    ITEM_LEAF_STONE,
+    ITEM_ICE_STONE,
+    ITEM_SUN_STONE,
+    ITEM_MOON_STONE,
+    ITEM_SHINY_STONE,
+    ITEM_DUSK_STONE,
+    ITEM_DAWN_STONE,
+    ITEM_LINKING_CORD,
 };
 
 STATIC_ASSERT(ARRAY_COUNT(sForkRandomizedItemPool) == FORK_ITEM_RANDOMIZER_POOL_COUNT, ForkItemRandomizerPoolSizeMismatch);
@@ -531,32 +540,11 @@ enum Item ResolveForkRandomizedItem(enum Item itemId, u16 sourceId)
 
 void InitForkGameCornerPrizeCatalog(void)
 {
-    if (!ForkIsItemRandomizerEnabled())
-        return;
-    EnsureForkItemRandomizerInitialized();
-
-    if (gSaveBlock3Ptr->forkGameCornerPrizeItems[0] != ITEM_NONE)
-        return;
-
-    for (u16 i = 0; i < FORK_GAME_CORNER_PRIZE_COUNT; i++)
-    {
-        u16 poolIndex = GetNextUnclaimedPoolIndex(FORK_ITEM_RANDOMIZER_SOURCE_COUNT + i);
-
-        gSaveBlock3Ptr->forkGameCornerPrizeItems[i] = (poolIndex == FORK_ITEM_RANDOMIZER_UNASSIGNED)
-            ? ITEM_NONE
-            : sForkRandomizedItemPool[poolIndex];
-    }
 }
 
 enum Item GetForkGameCornerPrizeItem(u16 index)
 {
-    if (!ForkIsItemRandomizerEnabled())
-        return index < ARRAY_COUNT(sForkVanillaGameCornerPrizes) ? sForkVanillaGameCornerPrizes[index] : ITEM_NONE;
-    InitForkGameCornerPrizeCatalog();
-    if (index >= FORK_GAME_CORNER_PRIZE_COUNT)
-        return ITEM_NONE;
-
-    return gSaveBlock3Ptr->forkGameCornerPrizeItems[index];
+    return index < ARRAY_COUNT(sForkGameCornerPrizes) ? sForkGameCornerPrizes[index] : ITEM_NONE;
 }
 
 void ScrCmd_BuildForkGameCornerPrizeMenu(struct ScriptContext *ctx)
@@ -564,7 +552,7 @@ void ScrCmd_BuildForkGameCornerPrizeMenu(struct ScriptContext *ctx)
     (void)ctx;
     InitForkGameCornerPrizeCatalog();
 
-    for (u16 i = 0; i < FORK_GAME_CORNER_PRIZE_COUNT; i++)
+    for (u16 i = 0; i < FORK_GAME_CORNER_MENU_PRIZE_COUNT; i++)
     {
         u8 *name = Alloc(40);
         StringCopy(name, GetItemName(GetForkGameCornerPrizeItem(i)));

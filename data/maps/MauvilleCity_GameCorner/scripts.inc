@@ -2,7 +2,7 @@ MauvilleCity_GameCorner_MapScripts::
 	.byte 0
 
 	@ Game Corner prices
-	.set RANDOMIZED_PRIZE_COINS, 4000
+	.set EVOLUTION_ITEM_PRIZE_COINS, 4000
 	.set DOLL_COINS, 1000
 
 	.set COINS_PRICE_50,  1000
@@ -275,10 +275,10 @@ MauvilleCity_GameCorner_EventScript_ConfirmTMPrize::
 
 MauvilleCity_GameCorner_EventScript_BuyRandomizedPrize::
 	checkcoins VAR_TEMP_2
-	goto_if_lt VAR_TEMP_2, RANDOMIZED_PRIZE_COINS, MauvilleCity_GameCorner_EventScript_NotEnoughCoinsForTM
+	goto_if_lt VAR_TEMP_2, EVOLUTION_ITEM_PRIZE_COINS, MauvilleCity_GameCorner_EventScript_NotEnoughCoinsForTM
 	checkitemspace VAR_0x8004
 	goto_if_eq VAR_RESULT, FALSE, MauvilleCity_GameCorner_EventScript_NoRoomForTM
-	removecoins RANDOMIZED_PRIZE_COINS
+	removecoins EVOLUTION_ITEM_PRIZE_COINS
 	additem VAR_0x8004
 	updatecoinsbox 1, 1
 	playse SE_SHOP

@@ -50,50 +50,49 @@ SealedChamber_OuterRoom_Braille_DigHere:
 	brailleformat 7, 4, 23, 15, 10, 7
 	.braille "DIG HERE.$"
 
-SealedChamber_InnerRoom_Braille_FirstWailordLastRelicanth:
+SealedChamber_InnerRoom_Braille_RedEmerald:
 	brailleformat 0, 0, 29, 19, 3, 3
-	.braille "FIRST COMES\n"
-	.braille "WAILORD.\n"
-	.braille "LAST COMES\n"
-	.braille "RELICANTH.$"
+	.braille "SEVEN COLORS.\n"
+	.braille "RED HIDES IN\n"
+	.braille "PETALBURG WOODS.\n"
+	.braille "BRING THEM ALL.$"
 
-SealedChamber_InnerRoom_Braille_InThisCaveWeHaveLived:
+SealedChamber_InnerRoom_Braille_BlueEmerald:
 	brailleformat 2, 0, 26, 19, 5, 3
-	.braille "IN THIS\n"
-	.braille "CAVE WE\n"
-	.braille "HAVE\n"
-	.braille "LIVED.$"
+	.braille "BLUE RESTS\n"
+	.braille "ON THE BEACH\n"
+	.braille "WEST OF DEWFORD.$"
 
-SealedChamber_InnerRoom_Braille_WeOweAllToThePokemon:
+SealedChamber_InnerRoom_Braille_GreenEmerald:
 	brailleformat 7, 2, 23, 17, 10, 5
-	.braille "WE OWE ALL\n"
-	.braille "TO THE\n"
-	.braille "POKEMON.$"
+	.braille "GREEN HIDES\n"
+	.braille "IN THE DESERT\n"
+	.braille "WHERE ASH FALLS.$"
 
-SealedChamber_InnerRoom_Braille_ButWeSealedThePokemonAway:
+SealedChamber_InnerRoom_Braille_YellowEmerald:
 	brailleformat 3, 0, 25, 19, 6, 3
-	.braille "BUT, WE\n"
-	.braille "SEALED THE\n"
-	.braille "POKEMON\n"
-	.braille "AWAY.$"
+	.braille "YELLOW LIES\n"
+	.braille "ON THE ROAD\n"
+	.braille "TO METEOR FALLS.$"
 
-SealedChamber_InnerRoom_Braille_WeFearedIt:
+SealedChamber_InnerRoom_Braille_PurpleEmerald:
 	brailleformat 5, 6, 25, 13, 8, 9
-	.braille "WE FEARED IT.$"
+	.braille "PURPLE WAITS\n"
+	.braille "WHERE THE\n"
+	.braille "CYCLING ROAD\n"
+	.braille "MEETS THE ROUTE.$"
 
-SealedChamber_InnerRoom_Braille_ThoseWithCourageHope:
+SealedChamber_InnerRoom_Braille_WhiteEmerald:
 	brailleformat 6, 0, 24, 19, 9, 3
-	.braille "THOSE WITH\n"
-	.braille "COURAGE,\n"
-	.braille "THOSE WITH\n"
-	.braille "HOPE.$"
+	.braille "WHITE SHINES\n"
+	.braille "ON THE MOUNTAIN\n"
+	.braille "WHERE THE DEAD REST.$"
 
-SealedChamber_InnerRoom_Braille_OpenDoorEternalPokemonWaits:
+SealedChamber_InnerRoom_Braille_BlackEmerald:
 	brailleformat 3, 2, 27, 17, 6, 5
-	.braille "OPEN A DOOR.\n"
-	.braille "AN ETERNAL\n"
-	.braille "POKEMON\n"
-	.braille "WAITS.$"
+	.braille "BLACK RESTS\n"
+	.braille "AT THE RIVER'S\n"
+	.braille "START.$"
 
 DesertRuins_Braille_UseRockSmash:
 	brailleformat 1, 0, 27, 19, 4, 3
@@ -272,4 +271,3 @@ Braille_Text_WorldWaits::
 Braille_Text_ForYou::
 	brailleformat 3, 0, 25, 19, 6, 3
 	.braille "FOR YOU.$"
-

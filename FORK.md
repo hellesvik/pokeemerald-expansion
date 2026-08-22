@@ -21,6 +21,9 @@ The detailed, player-facing documentation is organized in
 - Generation limits, Mega Evolution controls, and starter IV improvements.
 - A startup menu for choosing presets or customizing these rules.
 
+The Sealed Chamber unlock no longer requires Wailord and Relicanth in the
+player's party.
+
 ## Developer reference
 
 Implementation files and tests are linked from the individual feature pages.

@@ -14693,6 +14693,118 @@ const struct ItemInfo gItemsInfo[] =
         .iconPalette = gItemIconPalette_Sapphire,
     },
 
+    [ITEM_REGI_EMERALD_RED] =
+    {
+        .name = ITEM_NAME("Red Emerald"),
+        .pluralName = ITEM_PLURAL_NAME("Red Emeralds"),
+        .price = 0,
+        .description = COMPOUND_STRING("A red emerald needed\n"
+            "to open the Sealed\n"
+            "Chamber door."),
+        .importance = 1,
+        .pocket = POCKET_KEY_ITEMS,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .iconPic = gItemIcon_Gem,
+        .iconPalette = gItemIconPalette_FireGem,
+    },
+
+    [ITEM_REGI_EMERALD_BLUE] =
+    {
+        .name = ITEM_NAME("Blue Emerald"),
+        .pluralName = ITEM_PLURAL_NAME("Blue Emeralds"),
+        .price = 0,
+        .description = COMPOUND_STRING("A blue emerald needed\n"
+            "to open the Sealed\n"
+            "Chamber door."),
+        .importance = 1,
+        .pocket = POCKET_KEY_ITEMS,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .iconPic = gItemIcon_Gem,
+        .iconPalette = gItemIconPalette_WaterGem,
+    },
+
+    [ITEM_REGI_EMERALD_GREEN] =
+    {
+        .name = ITEM_NAME("Green Emerald"),
+        .pluralName = ITEM_PLURAL_NAME("Green Emeralds"),
+        .price = 0,
+        .description = COMPOUND_STRING("A green emerald needed\n"
+            "to open the Sealed\n"
+            "Chamber door."),
+        .importance = 1,
+        .pocket = POCKET_KEY_ITEMS,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .iconPic = gItemIcon_Gem,
+        .iconPalette = gItemIconPalette_GrassGem,
+    },
+
+    [ITEM_REGI_EMERALD_YELLOW] =
+    {
+        .name = ITEM_NAME("Yellow Emerald"),
+        .pluralName = ITEM_PLURAL_NAME("Yellow Emeralds"),
+        .price = 0,
+        .description = COMPOUND_STRING("A yellow emerald needed\n"
+            "to open the Sealed\n"
+            "Chamber door."),
+        .importance = 1,
+        .pocket = POCKET_KEY_ITEMS,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .iconPic = gItemIcon_Gem,
+        .iconPalette = gItemIconPalette_ElectricGem,
+    },
+
+    [ITEM_REGI_EMERALD_PURPLE] =
+    {
+        .name = ITEM_NAME("Purple Emerald"),
+        .pluralName = ITEM_PLURAL_NAME("Purple Emeralds"),
+        .price = 0,
+        .description = COMPOUND_STRING("A purple emerald needed\n"
+            "to open the Sealed\n"
+            "Chamber door."),
+        .importance = 1,
+        .pocket = POCKET_KEY_ITEMS,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .iconPic = gItemIcon_Gem,
+        .iconPalette = gItemIconPalette_PsychicGem,
+    },
+
+    [ITEM_REGI_EMERALD_WHITE] =
+    {
+        .name = ITEM_NAME("White Emerald"),
+        .pluralName = ITEM_PLURAL_NAME("White Emeralds"),
+        .price = 0,
+        .description = COMPOUND_STRING("A white emerald needed\n"
+            "to open the Sealed\n"
+            "Chamber door."),
+        .importance = 1,
+        .pocket = POCKET_KEY_ITEMS,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .iconPic = gItemIcon_Gem,
+        .iconPalette = gItemIconPalette_IceGem,
+    },
+
+    [ITEM_REGI_EMERALD_BLACK] =
+    {
+        .name = ITEM_NAME("Black Emerald"),
+        .pluralName = ITEM_PLURAL_NAME("Black Emeralds"),
+        .price = 0,
+        .description = COMPOUND_STRING("A black emerald needed\n"
+            "to open the Sealed\n"
+            "Chamber door."),
+        .importance = 1,
+        .pocket = POCKET_KEY_ITEMS,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .iconPic = gItemIcon_Gem,
+        .iconPalette = gItemIconPalette_DarkGem,
+    },
+
     [ITEM_ABILITY_SHIELD] =
     {
         .name = ITEM_NAME("Ability Shield"),

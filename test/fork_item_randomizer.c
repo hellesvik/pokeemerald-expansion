@@ -49,29 +49,28 @@ TEST("Fork item randomizer varies by source")
     EXPECT_NE(ResolveForkRandomizedItem(ITEM_POTION, 11), ResolveForkRandomizedItem(ITEM_POTION, 12));
 }
 
-TEST("Fork Game Corner catalog reserves five unassigned randomized items")
+TEST("Game Corner sells every evolution stone and the Linking Cord")
 {
-    enum Item prizes[FORK_GAME_CORNER_PRIZE_COUNT];
-
-    gSaveBlock3Ptr->forkItemRandomizerSeed = 54322;
-    ResetForkItemRandomizerState();
-    InitForkGameCornerPrizeCatalog();
-
-    for (u32 i = 0; i < ARRAY_COUNT(prizes); i++)
+    static const enum Item expectedPrizes[] =
     {
-        prizes[i] = GetForkGameCornerPrizeItem(i);
-        EXPECT_NE(prizes[i], ITEM_NONE);
-        for (u32 j = 0; j < i; j++)
-            EXPECT_NE(prizes[i], prizes[j]);
-    }
+        ITEM_FIRE_STONE,
+        ITEM_WATER_STONE,
+        ITEM_THUNDER_STONE,
+        ITEM_LEAF_STONE,
+        ITEM_ICE_STONE,
+        ITEM_SUN_STONE,
+        ITEM_MOON_STONE,
+        ITEM_SHINY_STONE,
+        ITEM_DUSK_STONE,
+        ITEM_DAWN_STONE,
+        ITEM_LINKING_CORD,
+    };
 
-    for (u16 sourceId = 0; sourceId < FORK_ITEM_RANDOMIZER_SOURCE_COUNT; sourceId++)
+    for (u32 i = 0; i < ARRAY_COUNT(expectedPrizes); i++)
     {
-        enum Item item = ResolveForkRandomizedItem(ITEM_POTION, sourceId);
-
-        for (u32 prizeIndex = 0; prizeIndex < ARRAY_COUNT(prizes); prizeIndex++)
-            EXPECT_NE(item, prizes[prizeIndex]);
+        EXPECT_EQ(GetForkGameCornerPrizeItem(i), expectedPrizes[i]);
     }
+    EXPECT_EQ(GetForkGameCornerPrizeItem(ARRAY_COUNT(expectedPrizes)), ITEM_NONE);
 }
 
 TEST("Fork item randomizer hidden items are stable by hidden-item flag")

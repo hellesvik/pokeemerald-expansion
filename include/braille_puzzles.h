@@ -2,6 +2,7 @@
 #define GUARD_BRAILLE_PUZZLES_H
 
 bool8 ShouldDoBrailleRegisteelEffect(void);
+bool8 HasAllRegiEmeralds(void);
 bool8 ShouldDoBrailleRegirockEffect(void);
 bool8 ShouldDoBrailleDigEffect(void);
 void DoBrailleDigEffect(void);

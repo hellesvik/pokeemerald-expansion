@@ -2,6 +2,9 @@
 
 These pages describe rules that directly affect a playthrough.
 
+The Sealed Chamber unlock no longer requires Wailord and Relicanth in the
+player's party.
+
 - [One Catch Per Area](./one_catch_per_area.md)
 - [Level Limits](./level_limits.md)
 - [Whiteout and faint penalties](./whiteout_penalty.md)

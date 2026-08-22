@@ -12,6 +12,8 @@
 #include "fieldmap.h"
 #include "party_menu.h"
 #include "fldeff.h"
+#include "item.h"
+#include "constants/items.h"
 
 EWRAM_DATA static bool8 sIsRegisteelPuzzle = 0;
 
@@ -89,18 +91,26 @@ void DoBrailleDigEffect(void)
     FlagSet(FLAG_SYS_BRAILLE_DIG);
 }
 
-bool8 CheckRelicanthWailord(void)
+bool8 HasAllRegiEmeralds(void)
 {
-    // Emerald change: why did they flip it?
-    // First comes Wailord
-    if (GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_SPECIES_OR_EGG, 0) == SPECIES_WAILORD)
+    static const enum Item regiEmeralds[] =
     {
-        CalculatePlayerPartyCount();
-        // Last comes Relicanth
-        if (GetMonData(&gParties[B_TRAINER_PLAYER][gPartiesCount[B_TRAINER_PLAYER] - 1], MON_DATA_SPECIES_OR_EGG, 0) == SPECIES_RELICANTH)
-            return TRUE;
+        ITEM_REGI_EMERALD_RED,
+        ITEM_REGI_EMERALD_BLUE,
+        ITEM_REGI_EMERALD_GREEN,
+        ITEM_REGI_EMERALD_YELLOW,
+        ITEM_REGI_EMERALD_PURPLE,
+        ITEM_REGI_EMERALD_WHITE,
+        ITEM_REGI_EMERALD_BLACK,
+    };
+
+    for (u32 i = 0; i < ARRAY_COUNT(regiEmeralds); i++)
+    {
+        if (!CheckBagHasItem(regiEmeralds[i], 1))
+            return FALSE;
     }
-    return FALSE;
+
+    return TRUE;
 }
 
 // THEORY: this was caused by block commenting out all of the older R/S braille functions but leaving the call to it itself, which creates the nullsub.

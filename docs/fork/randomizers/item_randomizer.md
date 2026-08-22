@@ -42,20 +42,15 @@ The following are never randomized:
 All direct scripted rewards remain vanilla, including item gifts and progression
 rewards.
 
-Shops and berry-tree yields are not routed through the item-randomizer code,
-with one deliberate exception: when enabled, Mauville Game Corner's prize
-counter offers items from the randomizer pool. When disabled, it restores the
-normal five TM prizes.
+Shops and berry-tree yields are not routed through the item-randomizer code.
+Mauville Game Corner always offers the ten evolution stones and Linking Cord
+for 4,000 coins each, regardless of randomizer settings.
 
 ## Mauville Game Corner catalog
 
-The Mauville Game Corner has five randomized prize entries, each costing 4,000
-coins. The catalog is generated the first time it is needed and then saved, so
-the same five named items are shown on every later visit. Each catalog item is
-reserved from the main item pool when the catalog is generated; it therefore
-cannot also be assigned to a visible item ball. Prizes remain repeatable
-purchases, allowing the player to decide which, if any, of the offered items to
-buy.
+The Mauville Game Corner sells Fire, Water, Thunder, Leaf, Ice, Sun, Moon,
+Shiny, Dusk, and Dawn Stones, plus Linking Cord. Each costs 4,000 coins, and
+the scrollable menu allows all eleven prizes to be selected.
 
 ## Replacement pool
 
